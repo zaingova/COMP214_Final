@@ -39,23 +39,23 @@ VALUES (002,'Jane','Smith',2);
 INSERT INTO employee
 VALUES (003,'Robert','Brown',1);
 INSERT INTO employee
-VALUES (004,'Emily','Johnson','Staff');
+VALUES (004,'Emily','Johnson', 2);
 INSERT INTO employee
-VALUES (005,'Paul','Delores','Staff');
+VALUES (005,'Paul','Delores', 2);
 INSERT INTO employee
-VALUES (006,'Channing','Bosum','Staff');
+VALUES (006,'Channing','Bosum',2);
 INSERT INTO employee
-VALUES (007,'Shaun','Jacobson','Staff');
+VALUES (007,'Shaun','Jacobson',2);
 INSERT INTO employee
-VALUES (008,'Lauren','Moser','Staff');
+VALUES (008,'Lauren','Moser',2);
 INSERT INTO employee
-VALUES (009,'Tina','Shaw','Staff');
+VALUES (009,'Tina','Shaw',2);
 INSERT INTO employee
-VALUES (010,'Pradeep','Singh','Staff');
+VALUES (010,'Pradeep','Singh',2);
 INSERT INTO employee
-VALUES (011,'Farukh','Khan','Pilot');
+VALUES (011,'Farukh','Khan',1);
 INSERT INTO employee
-VALUES (012,'Lin','Miyazaki','Pilot');
+VALUES (012,'Lin','Miyazaki',1);
 
 SELECT * FROM EMPLOYEE ORDER BY EMPLOYEE#;
 
@@ -330,7 +330,7 @@ FROM (
     FROM employee e
     JOIN flight_staff fs ON e.employee# = fs.employee#
     JOIN flight f ON fs.flight_id = f.flight_id
-    WHERE e.employee_type = 'Staff'
+    WHERE e.employee_type = 2
 ) staff_flights;
 
 -- subquery #2
