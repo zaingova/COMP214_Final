@@ -7,17 +7,49 @@ DROP TABLE employee CASCADE CONSTRAINTS;
 DROP TABLE flight_staff CASCADE CONSTRAINTS;
 DROP TABLE ticket CASCADE CONSTRAINTS;
 DROP TABLE passenger CASCADE CONSTRAINTS;
+DROP TABLE emp_type CASCADE CONSTRAINTS;
+DROP TABLE location CASCADE CONSTRAINTS;
+
+---------- CREATING AND POPULATING LOCATION LOOKUP ---
+
+CREATE TABLE LOCATION (
+    locationCode CHAR(3),
+    locationDesc VARCHAR(50)
+)
+
+INSERT INTO LOCATION
+VALUES ('LAX', 'Los Angeles International Airport');
+INSERT INTO LOCATION
+VALUES ('JFK', 'John F. Kennedy International Airport');
+INSERT INTO LOCATION
+VALUES ('LHR', 'London Heathrow Airport');
+INSERT INTO LOCATION
+VALUES ('ORD', 'O''Hare International Airport');
+INSERT INTO LOCATION
+VALUES ('CDG', 'Charles de Gaulle Airport');
+INSERT INTO LOCATION
+VALUES ('SYD', 'Sydney Kingsford Smith Airport');
+INSERT INTO LOCATION
+VALUES ('HKG', 'Hong Kong International Airport');
+INSERT INTO LOCATION
+VALUES ('BKK', 'Suvarnabhumi Airport');
+INSERT INTO LOCATION
+VALUES ('DXB', 'Dubai International Airport');
+INSERT INTO LOCATION
+VALUES ('FRA', 'Frankfurt Airport');
+
+select * from location;
 
 ---------- CREATING AND POPULATING EMP-LOOKUP --------
 
-CREATE TABLE EMP_TYPE (
+CREATE TABLE emp_type (
     employeeID NUMBER(2),
     jobDescription VARCHAR2(20)
 )
 
-INSERT INTO EMP_TYPE
+INSERT INTO emp_type
 VALUES (1, 'Pilot');
-INSERT INTO EMP_TYPE
+INSERT INTO emp_type
 VALUES (2, 'Flight Staff');
 
 select * from emp_type;
@@ -113,8 +145,8 @@ CREATE TABLE flight (
     flight_id      NUMBER(10),
     airplane_id    NUMBER(10),
     pilot_id       NUMBER(10),
-    origin         VARCHAR2(26),
-    destination    VARCHAR2(26),
+    origin         CHAR(3),
+    destination    CHAR(3),
     departure_date DATE,
     departure_time VARCHAR2(10),
     arrival_date   DATE,
@@ -130,13 +162,13 @@ CREATE TABLE flight (
 );
 
 INSERT INTO flight
-VALUES (001, 2536, 1, 'San Francisco', 'New York City', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '12:30 PM', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '5:00 PM');
+VALUES (001, 2536, 1, 'LAX', 'CDG', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '12:30 PM', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '5:00 PM');
 INSERT INTO flight
-VALUES (002, 6475, 2, 'Dallas', 'Las Vegas', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '11:00 PM', TO_DATE('2023-08-03', 'YYYY-MM-DD'), '2:30 AM');
+VALUES (002, 6475, 2, 'JFK', 'BKK', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '11:00 PM', TO_DATE('2023-08-03', 'YYYY-MM-DD'), '2:30 AM');
 INSERT INTO flight
-VALUES (003, 9874, 3, 'Reykjavik', 'Toronto', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '8:00 AM', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '2:30 PM');
+VALUES (003, 9874, 3, 'FRA', 'SYD', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '8:00 AM', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '2:30 PM');
 INSERT INTO flight
-VALUES (004, 9072, 4, 'Barcelona', 'Paris', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 PM', TO_DATE('2023-08-09', 'YYYY-MM-DD'), '3:20 AM');
+VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 PM', TO_DATE('2023-08-09', 'YYYY-MM-DD'), '3:20 AM');
 
 SELECT * FROM FLIGHT;
 
