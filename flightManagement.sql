@@ -1,4 +1,4 @@
----------- DROPPING TABLES ----------
+---------- DROPPING TABLES -----------------------------------------------------
 
 DROP TABLE pilot CASCADE CONSTRAINTS;
 DROP TABLE flight CASCADE CONSTRAINTS;
@@ -8,43 +8,51 @@ DROP TABLE flight_staff CASCADE CONSTRAINTS;
 DROP TABLE ticket CASCADE CONSTRAINTS;
 DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
-DROP TABLE location CASCADE CONSTRAINTS;
+DROP TABLE location CASCADE CONSTRAINTS NOWAIT;
 
----------- CREATING AND POPULATING LOCATION LOOKUP ---
+---------- CREATING AND POPULATING LOCATION LOOKUP -----------------------------
 
 CREATE TABLE LOCATION (
     locationCode CHAR(3),
-    locationDesc VARCHAR(50)
+    locationDesc VARCHAR(50),
+    utcOffset NUMBER(2),
+    latitude NUMBER(9, 6),
+    longitude NUMBER(9, 6),
+    CONSTRAINT location_locationCode_pk PRIMARY KEY ( locationCode )
 )
 
-INSERT INTO LOCATION
-VALUES ('LAX', 'Los Angeles International Airport');
-INSERT INTO LOCATION
-VALUES ('JFK', 'John F. Kennedy International Airport');
-INSERT INTO LOCATION
-VALUES ('LHR', 'London Heathrow Airport');
-INSERT INTO LOCATION
-VALUES ('ORD', 'O''Hare International Airport');
-INSERT INTO LOCATION
-VALUES ('CDG', 'Charles de Gaulle Airport');
-INSERT INTO LOCATION
-VALUES ('SYD', 'Sydney Kingsford Smith Airport');
-INSERT INTO LOCATION
-VALUES ('HKG', 'Hong Kong International Airport');
-INSERT INTO LOCATION
-VALUES ('BKK', 'Suvarnabhumi Airport');
-INSERT INTO LOCATION
-VALUES ('DXB', 'Dubai International Airport');
-INSERT INTO LOCATION
-VALUES ('FRA', 'Frankfurt Airport');
+INSERT INTO LOCATION 
+VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
+INSERT INTO LOCATION 
+VALUES ('JFK', 'John F. Kennedy International Airport', -5, 40.6413, -73.7781);
+INSERT INTO LOCATION 
+VALUES ('LHR', 'London Heathrow Airport', 0, 51.5074, -0.1278);
+INSERT INTO LOCATION 
+VALUES ('ORD', 'O''Hare International Airport', -6, 41.9744, -87.9071);
+INSERT INTO LOCATION 
+VALUES ('CDG', 'Charles de Gaulle Airport', 1, 49.0097, 2.5479);
+INSERT INTO LOCATION 
+VALUES ('SYD', 'Sydney Kingsford Smith Airport', 10, -33.8688, 151.2093);
+INSERT INTO LOCATION 
+VALUES ('HKG', 'Hong Kong International Airport', 8, 22.3080, 113.9141);
+INSERT INTO LOCATION 
+VALUES ('BKK', 'Suvarnabhumi Airport', 7, 13.6897, 100.7501);
+INSERT INTO LOCATION 
+VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
+INSERT INTO LOCATION 
+VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
 
 select * from location;
 
----------- CREATING AND POPULATING EMP-LOOKUP --------
+SELECT get_flight_time('LAX', 'DXB') AS "Flight Time (h)" FROM dual;
+SELECT * FROM LOCATION WHERE locationCode IN ('LAX', 'JFK');
+
+---------- CREATING AND POPULATING EMP-LOOKUP ----------------------------------
 
 CREATE TABLE emp_type (
-    employeeID NUMBER(2),
-    jobDescription VARCHAR2(20)
+    employeeID NUMBER(1),
+    jobDescription VARCHAR2(20),
+    CONSTRAINT emp_type_employeeID_pk PRIMARY KEY (employeeID)
 )
 
 INSERT INTO emp_type
@@ -54,13 +62,13 @@ VALUES (2, 'Flight Staff');
 
 select * from emp_type;
 
----------- CREATING AND POPULATING EMPLOYEE ----------
+---------- CREATING AND POPULATING EMPLOYEE ------------------------------------
 
 CREATE TABLE employee (
     employee#     NUMBER(10),
     first_name    VARCHAR2(26),
     last_name     VARCHAR2(26),
-    employee_type NUMBER(2),
+    employee_type NUMBER(1),
     CONSTRAINT employee_employee#_pk PRIMARY KEY ( employee# )
 );
 
@@ -91,7 +99,7 @@ VALUES (012,'Lin','Miyazaki',1);
 
 SELECT * FROM EMPLOYEE ORDER BY EMPLOYEE#;
 
----------- CREATING AND POPULATING PILOT ----------
+---------- CREATING AND POPULATING PILOT ---------------------------------------
 
 CREATE TABLE pilot (
     pilot_id  NUMBER(10),
@@ -118,7 +126,7 @@ VALUES (4,012,1004);
 
 SELECT * FROM PILOT;
 
----------- CREATING AND POPULATING AIRPLANE ----------
+---------- CREATING AND POPULATING AIRPLANE ------------------------------------
 
 CREATE TABLE airplane (
     airplane_id   NUMBER(10),
@@ -139,7 +147,7 @@ VALUES (9072,'GH0124','Boeing747','Sun Wing');
 
 SELECT * FROM AIRPLANE;
 
----------- CREATING AND POPULATING FLIGHT ----------
+---------- CREATING AND POPULATING FLIGHT --------------------------------------
 
 CREATE TABLE flight (
     flight_id      NUMBER(10),
@@ -172,7 +180,7 @@ VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 
 
 SELECT * FROM FLIGHT;
 
----------- CREATING AND POPULATING FLIGHT STAFF ----------
+---------- CREATING AND POPULATING FLIGHT STAFF --------------------------------
 
 CREATE TABLE flight_staff (
     staff_id  NUMBER(10),
@@ -193,7 +201,7 @@ VALUES (2, 004, 002);
 
 SELECT * FROM FLIGHT_STAFF;
 
----------- CREATING AND POPULATING PASSENGER ----------
+---------- CREATING AND POPULATING PASSENGER -----------------------------------
 
 CREATE TABLE passenger (
     passenger_id NUMBER(10),
@@ -236,7 +244,7 @@ VALUES (114, 'Joseph', 'Lewis', 'joseph.lewis@example.com', '345-678-9013', '888
 
 SELECT * FROM PASSENGER;
 
----------- CREATING AND POPULATING TICKET ----------
+---------- CREATING AND POPULATING TICKET --------------------------------------
 
 CREATE TABLE ticket (
     ticket_id     NUMBER(10),
@@ -281,102 +289,66 @@ VALUES (1014, 114, 002, 'Economy');
 
 SELECT * FROM TICKET;
 
----------- RETRIEVING PASSENGER INFO FROM TICKET ----------
-SELECT P.PASSENGER_ID, P.FIRST_NAME, P.LAST_NAME, F.ORIGIN, F.DESTINATION
-FROM PASSENGER P, TICKET T, FLIGHT F
-WHERE P.PASSENGER_ID = T.PASSENGER_ID
-AND T.FLIGHT_ID = F.FLIGHT_ID;
+CREATE OR REPLACE FUNCTION get_flight_time(
+    p_from_location IN CHAR,
+    p_to_location IN CHAR
+) RETURN NUMBER IS
+    v_latitude_from NUMBER(9,6);
+    v_longitude_from NUMBER(9,6);
+    v_latitude_to NUMBER(9,6);
+    v_longitude_to NUMBER(9,6);
+    v_flight_time NUMBER;
+BEGIN
+    -- Fetch the latitude and longitude for the "From" location
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_from, v_longitude_from
+        FROM LOCATION
+        WHERE locationCode = p_from_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for From location: ' || p_from_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching From location: ' || SQLERRM);
+            RETURN NULL;
+    END;
 
----------- RETRIEVING PASSENGER SEATING CLASS AND AIRPLANE COMPANY FROM TICKET -
-SELECT T.SEATING_CLASS, P.FIRST_NAME, P.LAST_NAME, A.COMPANY
-FROM PASSENGER P 
-JOIN TICKET T ON P.PASSENGER_ID = T.PASSENGER_ID
-JOIN FLIGHT F ON T.FLIGHT_ID = F.FLIGHT_ID
-JOIN AIRPLANE A ON F.AIRPLANE_ID = A.AIRPLANE_ID;
+    -- Fetch the latitude and longitude for the "To" location
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_to, v_longitude_to
+        FROM LOCATION
+        WHERE locationCode = p_to_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for To location: ' || p_to_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching To location: ' || SQLERRM);
+            RETURN NULL;
+    END;
 
----------- RETRIEVING EMPLOYEE TYPE BASED ON FLIGHT ID (STAFF) ----------
-SELECT E.FIRST_NAME, E.LAST_NAME, E.EMPLOYEE_TYPE, F.FLIGHT_ID
-FROM FLIGHT F, FLIGHT_STAFF FS, EMPLOYEE E
-WHERE F.FLIGHT_ID = FS.FLIGHT_ID
-AND FS.EMPLOYEE# = E.EMPLOYEE#
-ORDER BY F.FLIGHT_ID, E.FIRST_NAME;
+    -- Log the retrieved latitude and longitude for debugging purposes
+    DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
+    DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
 
----------- RETRIEVING EMPLOYEE TYPE BASED ON FLIGHT ID (PILOTS) ----------
-SELECT E.FIRST_NAME, E.LAST_NAME, E.EMPLOYEE_TYPE, F.FLIGHT_ID
-FROM FLIGHT F, PILOT P, EMPLOYEE E
-WHERE F.PILOT_ID = P.PILOT_ID
-AND P.EMPLOYEE# = E.EMPLOYEE#
-ORDER BY F.FLIGHT_ID, E.FIRST_NAME;
+    -- Calculate the flight time using the Haversine formula (assuming 6371 km radius for Earth)
+    v_flight_time := ROUND(6371 * 2 * ASIN(
+                        SQRT(
+                            SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
+                            COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
+                            SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
+                        ) / 800
+                    ), 2);
 
----------- RETRIEVING PILOT NAME BASED ON FLIGHT ID ----------
-SELECT P.PILOT_ID, E.FIRST_NAME, E.LAST_NAME, F.FLIGHT_ID
-FROM EMPLOYEE E
-JOIN PILOT P ON E.EMPLOYEE# = P.EMPLOYEE#
-JOIN FLIGHT F ON P.PILOT_ID = F.PILOT_ID
-WHERE F.FLIGHT_ID = 4;
+    -- Return the calculated flight time in hours
+    RETURN v_flight_time;
 
----------- RETRIEVING ORIGIN AND DESTINATION BASED ON PASSENGER ADDRESS --------
-SELECT F.ORIGIN, F.DESTINATION, P.PASSENGER_ID
-FROM FLIGHT F
-JOIN TICKET T ON F.FLIGHT_ID = T.FLIGHT_ID
-JOIN PASSENGER P ON T.PASSENGER_ID = P.PASSENGER_ID
-WHERE P.ADDRESS IN ('456 Elm St, Chicago, IL');
-
----------- RETRIEVING ORIGIN AND DESTINATION BASED ON PASSENGER ----------------
------------------------- ADDRESS USING 'LIKE' ----------------------------------
-SELECT F.ORIGIN, F.DESTINATION, P.PASSENGER_ID, P.PHONE, P.ADDRESS
-FROM FLIGHT F
-JOIN TICKET T ON F.FLIGHT_ID = T.FLIGHT_ID
-JOIN PASSENGER P ON T.PASSENGER_ID = P.PASSENGER_ID
-WHERE P.ADDRESS LIKE ('%3%')
-ORDER BY P.PHONE DESC;
-
---like operator
-SELECT f.flight_id, f.origin, f.destination, f.departure_date, f.departure_time, f.arrival_date, f.arrival_time
-FROM flight f
-WHERE f.destination LIKE 'New%'
-ORDER BY f.destination;
-
--- Flights where depature is after 5pm
-SELECT flight_id, airplane_id, pilot_id, origin, destination, departure_date, departure_time, arrival_date, arrival_time
-FROM flight
-WHERE TO_DATE(departure_time, 'HH:MI AM') > TO_DATE ('05:00 PM', 'HH:MI AM');
-
-create view viewflights as SELECT flight_id, airplane_id, pilot_id, origin, destination, departure_date, departure_time, arrival_date, arrival_time
-FROM flight
-WHERE TO_DATE(departure_time, 'HH:MI AM') > TO_DATE ('05:00 PM', 'HH:MI AM');
-
-select * from viewflights;
-
---Insert ticket with non-existent passenger with passenger_id = 400 (will not work)
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) 
-VALUES (2001, 400, 1, 'Economy');
-
--- check constraint violation
-INSERT INTO pilot VALUES (-1, 7, 7);
-
--- subquery #1
-SELECT *
-FROM (
-    SELECT e.employee#, e.first_name, e.last_name, e.employee_type, f.flight_id, f.origin, f.destination, f.departure_date, f.departure_time, f.arrival_date, f.arrival_time
-    FROM employee e
-    JOIN flight_staff fs ON e.employee# = fs.employee#
-    JOIN flight f ON fs.flight_id = f.flight_id
-    WHERE e.employee_type = 2
-) staff_flights;
-
--- subquery #2
-SELECT *
-FROM (
-    SELECT E.FIRST_NAME, E.LAST_NAME, E.EMPLOYEE_TYPE, F.FLIGHT_ID
-    FROM FLIGHT F
-    JOIN PILOT P ON F.PILOT_ID = P.PILOT_ID
-    JOIN EMPLOYEE E ON P.EMPLOYEE# = E.EMPLOYEE#
-    ORDER BY F.FLIGHT_ID, E.FIRST_NAME
-) subquery_alias;
-------------------------------------------------------------------------------------END
-
-
-
-
+EXCEPTION
+    WHEN OTHERS THEN
+        -- General error handling
+        DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
+        RETURN NULL;
+END get_flight_time;
 
