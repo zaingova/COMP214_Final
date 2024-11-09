@@ -7,7 +7,7 @@ DROP TABLE flight_staff CASCADE CONSTRAINTS;
 DROP TABLE ticket CASCADE CONSTRAINTS;
 DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
-DROP TABLE location CASCADE CONSTRAINTS NOWAIT;
+DROP TABLE location CASCADE CONSTRAINTS;
 
 -- table creation
 CREATE TABLE location (
@@ -42,6 +42,7 @@ CREATE TABLE pilot (
     CONSTRAINT pilot_license#_uk UNIQUE ( license# ),
     CONSTRAINT pilot_license#_ck CHECK ( license# >= 1 )
 );
+
 CREATE TABLE flight (
     flight_id      NUMBER(10),
     airplane_id    NUMBER(10),
@@ -68,6 +69,7 @@ CREATE TABLE passenger (
     email        VARCHAR2(50),
     phone        VARCHAR2(15),
     address      VARCHAR2(100),
+    ticket_num   Number(25),
     CONSTRAINT passenger_passenger_id_pk PRIMARY KEY ( passenger_id )
 );
 CREATE TABLE flight_staff (
@@ -249,34 +251,35 @@ INSERT INTO flight_staff
 VALUES (2, 004, 002);
 
 INSERT INTO passenger
-VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
+VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
+VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (103, 'James', 'Anderson', 'james.anderson@example.com', '234-567-8901', '789 Pine St, Los Angeles, CA');
+VALUES (103, 'James', 'Anderson', 'james.anderson@example.com', '234-567-8901', '789 Pine St, Los Angeles, CA', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (104, 'Mary', 'Thomas', 'mary.thomas@example.com', '345-678-9012', '321 Oak St, Miami, FL');
+VALUES (104, 'Mary', 'Thomas', 'mary.thomas@example.com', '345-678-9012', '321 Oak St, Miami, FL', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (105, 'Patricia', 'Jackson', 'patricia.jackson@example.com', '456-789-0123', '654 Maple St, Dallas, TX');
+VALUES (105, 'Patricia', 'Jackson', 'patricia.jackson@example.com', '456-789-0123', '654 Maple St, Dallas, TX', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (106, 'Robert', 'White', 'robert.white@example.com', '567-890-1234', '987 Birch St, Seattle, WA');
+VALUES (106, 'Robert', 'White', 'robert.white@example.com', '567-890-1234', '987 Birch St, Seattle, WA', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (107, 'Linda', 'Harris', 'linda.harris@example.com', '678-901-2345', '111 Cedar St, Boston, MA');
+VALUES (107, 'Linda', 'Harris', 'linda.harris@example.com', '678-901-2345', '111 Cedar St, Boston, MA', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (108, 'Michael', 'Martin', 'michael.martin@example.com', '789-012-3456', '222 Spruce St, Denver, CO');
+VALUES (108, 'Michael', 'Martin', 'michael.martin@example.com', '789-012-3456', '222 Spruce St, Denver, CO', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (109, 'Barbara', 'Thompson', 'barbara.thompson@example.com', '890-123-4567', '333 Fir St, San Francisco, CA');
+VALUES (109, 'Barbara', 'Thompson', 'barbara.thompson@example.com', '890-123-4567', '333 Fir St, San Francisco, CA', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (110, 'William', 'Garcia', 'william.garcia@example.com', '901-234-5678', '444 Redwood St, Portland, OR');
+VALUES (110, 'William', 'Garcia', 'william.garcia@example.com', '901-234-5678', '444 Redwood St, Portland, OR', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (111, 'Elizabeth', 'Martinez', 'elizabeth.martinez@example.com', '012-345-6789', '555 Willow St, San Diego, CA');
+VALUES (111, 'Elizabeth', 'Martinez', 'elizabeth.martinez@example.com', '012-345-6789', '555 Willow St, San Diego, CA', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (112, 'Richard', 'Rodriguez', 'richard.rodriguez@example.com', '123-456-7891', '666 Cypress St, Las Vegas, NV');
+VALUES (112, 'Richard', 'Rodriguez', 'richard.rodriguez@example.com', '123-456-7891', '666 Cypress St, Las Vegas, NV', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (113, 'Susan', 'Clark', 'susan.clark@example.com', '234-567-8902', '777 Pine St, Phoenix, AZ');
+VALUES (113, 'Susan', 'Clark', 'susan.clark@example.com', '234-567-8902', '777 Pine St, Phoenix, AZ', ticket_seq.NEXTVAL);
 INSERT INTO passenger
-VALUES (114, 'Joseph', 'Lewis', 'joseph.lewis@example.com', '345-678-9013', '888 Oak St, Austin, TX');
-                 
+VALUES (114, 'Joseph', 'Lewis', 'joseph.lewis@example.com', '345-678-9013', '888 Oak St, Austin, TX', ticket_seq.NEXTVAL);
+   
+
 INSERT INTO ticket
 VALUES (1001, 101, 001, 'Economy');
 INSERT INTO ticket
@@ -306,4 +309,9 @@ VALUES (1013, 113, 002, 'First Class');
 INSERT INTO ticket
 VALUES (1014, 114, 002, 'Economy');
 
+CREATE SEQUENCE ticket_seq
+START WITH 1001  -- Starting point for ticket IDs
+INCREMENT BY 1;  -- Increment ticket IDs by 1 for each new entry
+
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
+select * from passenger;
