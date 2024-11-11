@@ -116,65 +116,6 @@ CREATE SEQUENCE ticket_seq
 START WITH 1001
 INCREMENT BY 1;
 
--- PL/SQL function/procedure declaration
-CREATE OR REPLACE FUNCTION get_flight_time(
-    p_from_location IN CHAR,
-    p_to_location IN CHAR
-) RETURN NUMBER IS
-    v_latitude_from NUMBER(9,6);
-    v_longitude_from NUMBER(9,6);
-    v_latitude_to NUMBER(9,6);
-    v_longitude_to NUMBER(9,6);
-    v_flight_time NUMBER;
-
-BEGIN
-    BEGIN
-        SELECT latitude, longitude
-        INTO v_latitude_from, v_longitude_from
-        FROM LOCATION
-        WHERE locationCode = p_from_location;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('No data found for From location: ' || p_from_location);
-            RETURN NULL;
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('Error fetching From location: ' || SQLERRM);
-            RETURN NULL;
-    END;
-
-    BEGIN
-        SELECT latitude, longitude
-        INTO v_latitude_to, v_longitude_to
-        FROM LOCATION
-        WHERE locationCode = p_to_location;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('No data found for To location: ' || p_to_location);
-            RETURN NULL;
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('Error fetching To location: ' || SQLERRM);
-            RETURN NULL;
-    END;
-
-    DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
-    DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
-
-    v_flight_time := ROUND(6371 * 2 * ASIN(
-                        SQRT(
-                            SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
-                            COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
-                            SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
-                        ) / 800
-                    ), 2);
-
-    RETURN v_flight_time;
-
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
-        RETURN NULL;
-END get_flight_time;
-
 -- Inserting data
 INSERT INTO LOCATION 
 VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
@@ -237,6 +178,65 @@ INSERT INTO flight_staff VALUES (2, 004, 002);
 INSERT INTO passenger VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
 INSERT INTO passenger VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
 
+-- PL/SQL function/procedure declaration
+CREATE OR REPLACE FUNCTION get_flight_time(
+    p_from_location IN CHAR,
+    p_to_location IN CHAR
+) RETURN NUMBER IS
+    v_latitude_from NUMBER(9,6);
+    v_longitude_from NUMBER(9,6);
+    v_latitude_to NUMBER(9,6);
+    v_longitude_to NUMBER(9,6);
+    v_flight_time NUMBER;
+
+BEGIN
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_from, v_longitude_from
+        FROM LOCATION
+        WHERE locationCode = p_from_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for From location: ' || p_from_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching From location: ' || SQLERRM);
+            RETURN NULL;
+    END;
+
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_to, v_longitude_to
+        FROM LOCATION
+        WHERE locationCode = p_to_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for To location: ' || p_to_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching To location: ' || SQLERRM);
+            RETURN NULL;
+    END;
+
+    DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
+    DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
+
+    v_flight_time := ROUND(6371 * 2 * ASIN(
+                        SQRT(
+                            SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
+                            COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
+                            SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
+                        ) / 800
+                    ), 2);
+
+    RETURN v_flight_time;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
+        RETURN NULL;
+END get_flight_time;
+
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
-SELECT * FROM passenger;
+SELECT *FROM passenger;
