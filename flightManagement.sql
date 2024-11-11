@@ -8,6 +8,7 @@ DROP TABLE ticket CASCADE CONSTRAINTS;
 DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
 DROP TABLE location CASCADE CONSTRAINTS;
+DROP TABLE luggage CASCADE CONSTRAINTS;
 DROP SEQUENCE ticket_seq;
 DROP FUNCTION get_flight_time;
 
@@ -111,6 +112,16 @@ CREATE TABLE ticket (
         REFERENCES flight ( flight_id )
 );
 
+CREATE TABLE luggage (
+    luggage_id NUMBER(10) PRIMARY KEY,
+    passenger_id NUMBER(10) NOT NULL,
+    flight_id NUMBER(10) NOT NULL,
+    weight NUMBER(5, 2) NOT NULL,
+    description VARCHAR2(100),
+    CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
+    CONSTRAINT luggage_flight_id_fk FOREIGN KEY (flight_id) REFERENCES flight(flight_id)
+);
+
 -- Creating sequence for ticket IDs
 CREATE SEQUENCE ticket_seq
 START WITH 1001
@@ -178,6 +189,10 @@ INSERT INTO flight_staff VALUES (2, 004, 002);
 INSERT INTO passenger VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
 INSERT INTO passenger VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
 
+--insert for table luggage
+INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
+INSERT INTO luggage VALUES (2, 102, 002, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+
 -- PL/SQL function/procedure declaration
 CREATE OR REPLACE FUNCTION get_flight_time(
     p_from_location IN CHAR,
@@ -239,4 +254,15 @@ END get_flight_time;
 
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
-SELECT *FROM passenger;
+
+--Select tests
+SELECT * FROM pilot;
+SELECT * FROM flight;
+SELECT * FROM airplane;
+SELECT * FROM employee;
+SELECT * FROM flight_staff;
+SELECT * FROM ticket;
+SELECT * FROM passenger;
+SELECT * FROM emp_type;
+SELECT * FROM location;
+SELECT * FROM luggage;
