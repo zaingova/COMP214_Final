@@ -1,18 +1,15 @@
-# COMP214_Final
 COMP214_F24 (Section 001)
 Prof.Zoran Sarajlic
 
 Term Project: Flight Management
 
 Collaborators:
-Gova, Zain
-Nazari, Milad
-Thillaiambalam, Gowsith
+Gova, Zain || 
+Nazari, Milad || 
+Thillaiambalam, Gowsith || 
 Alintog, Cherrie
 
-
-++++++++++++++++++++++++++++
-
+_______________________________________________________________________________
 
 Guidelines for Term Project – COMP214
 Course Name: Advance Database Concepts
