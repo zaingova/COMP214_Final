@@ -1,4 +1,4 @@
--- dropping tables
+-- Dropping tables if they exist
 DROP TABLE pilot CASCADE CONSTRAINTS;
 DROP TABLE flight CASCADE CONSTRAINTS;
 DROP TABLE airplane CASCADE CONSTRAINTS;
@@ -8,8 +8,10 @@ DROP TABLE ticket CASCADE CONSTRAINTS;
 DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
 DROP TABLE location CASCADE CONSTRAINTS;
+DROP SEQUENCE ticket_seq;
+DROP FUNCTION get_flight_time;
 
--- table creation
+-- Table creation
 CREATE TABLE location (
     locationCode CHAR(3),
     locationDesc VARCHAR(50),
@@ -18,17 +20,20 @@ CREATE TABLE location (
     longitude NUMBER(9, 6),
     CONSTRAINT location_locationCode_pk PRIMARY KEY ( locationCode )
 );
+
 CREATE TABLE emp_type (
     employeeID NUMBER(5),
     jobDescription VARCHAR2(50),
     CONSTRAINT emp_type_employeeID_pk PRIMARY KEY (employeeID)
 );
+
 CREATE TABLE employee (
     employee#     NUMBER(3),
     first_name    VARCHAR2(26),
     last_name     VARCHAR2(26),
     CONSTRAINT employee_employee#_pk PRIMARY KEY ( employee# )
 );
+
 CREATE TABLE pilot (
     pilot_id  NUMBER(10),
     employee# NUMBER(10),
@@ -41,6 +46,14 @@ CREATE TABLE pilot (
     CONSTRAINT pilot_employee#_ck CHECK ( employee# >= 1 ),
     CONSTRAINT pilot_license#_uk UNIQUE ( license# ),
     CONSTRAINT pilot_license#_ck CHECK ( license# >= 1 )
+);
+
+CREATE TABLE airplane (
+    airplane_id   NUMBER(10),
+    model#        VARCHAR2(20),
+    airplane_name VARCHAR2(50),
+    company       VARCHAR2(50),
+    CONSTRAINT airplane_airplane_id_pk PRIMARY KEY ( airplane_id )
 );
 
 CREATE TABLE flight (
@@ -62,6 +75,7 @@ CREATE TABLE flight (
     CONSTRAINT flight_pilot_id_uk UNIQUE ( pilot_id ),
     CONSTRAINT flight_arrival_date_ck CHECK ( arrival_date >= departure_date )
 );
+
 CREATE TABLE passenger (
     passenger_id NUMBER(10),
     first_name   VARCHAR2(26),
@@ -69,9 +83,10 @@ CREATE TABLE passenger (
     email        VARCHAR2(50),
     phone        VARCHAR2(15),
     address      VARCHAR2(100),
-    ticket_num   Number(25),
+    ticket_num   NUMBER(25),
     CONSTRAINT passenger_passenger_id_pk PRIMARY KEY ( passenger_id )
 );
+
 CREATE TABLE flight_staff (
     staff_id  NUMBER(10),
     employee# NUMBER(10),
@@ -83,6 +98,7 @@ CREATE TABLE flight_staff (
         REFERENCES flight ( flight_id ),
     CONSTRAINT flight_staff_employee#_uk UNIQUE ( employee# )
 );
+
 CREATE TABLE ticket (
     ticket_id     NUMBER(10),
     passenger_id  NUMBER(10),
@@ -94,13 +110,11 @@ CREATE TABLE ticket (
     CONSTRAINT ticket_flight_id_fk FOREIGN KEY ( flight_id )
         REFERENCES flight ( flight_id )
 );
-CREATE TABLE airplane (
-    airplane_id   NUMBER(10),
-    model#        VARCHAR2(20),
-    airplane_name VARCHAR2(50),
-    company       VARCHAR2(50),
-    CONSTRAINT airplane_airplane_id_pk PRIMARY KEY ( airplane_id )
-);
+
+-- Creating sequence for ticket IDs
+CREATE SEQUENCE ticket_seq
+START WITH 1001
+INCREMENT BY 1;
 
 -- PL/SQL function/procedure declaration
 CREATE OR REPLACE FUNCTION get_flight_time(
@@ -112,6 +126,7 @@ CREATE OR REPLACE FUNCTION get_flight_time(
     v_latitude_to NUMBER(9,6);
     v_longitude_to NUMBER(9,6);
     v_flight_time NUMBER;
+
 BEGIN
     BEGIN
         SELECT latitude, longitude
@@ -160,7 +175,7 @@ EXCEPTION
         RETURN NULL;
 END get_flight_time;
 
--- inserting data
+-- Inserting data
 INSERT INTO LOCATION 
 VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
 INSERT INTO LOCATION 
@@ -182,136 +197,46 @@ VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
 INSERT INTO LOCATION 
 VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
 
-INSERT INTO emp_type
-VALUES (1, 'Pilot');
-INSERT INTO emp_type
-VALUES (2, 'Flight Staff');
-INSERT INTO emp_type
-VALUES (3, 'Mechanic');
-INSERT INTO emp_type
-VALUES (4, 'Baggage Handler');
-INSERT INTO emp_type
-VALUES (5, 'Aircraft Fueler');
+INSERT INTO emp_type VALUES (1, 'Pilot');
+INSERT INTO emp_type VALUES (2, 'Flight Staff');
+INSERT INTO emp_type VALUES (3, 'Mechanic');
+INSERT INTO emp_type VALUES (4, 'Baggage Handler');
+INSERT INTO emp_type VALUES (5, 'Aircraft Fueler');
 
-INSERT INTO employee
-VALUES (001,'John','Doe');
-INSERT INTO employee
-VALUES (002,'Jane','Smith');
-INSERT INTO employee
-VALUES (003,'Robert','Brown');
-INSERT INTO employee
-VALUES (004,'Emily','Johnson');
-INSERT INTO employee
-VALUES (005,'Paul','Delores');
-INSERT INTO employee
-VALUES (006,'Channing','Bosum');
-INSERT INTO employee
-VALUES (007,'Shaun','Jacobson');
-INSERT INTO employee
-VALUES (008,'Lauren','Moser');
-INSERT INTO employee
-VALUES (009,'Tina','Shaw');
-INSERT INTO employee
-VALUES (010,'Pradeep','Singh');
-INSERT INTO employee
-VALUES (011,'Farukh','Khan');
-INSERT INTO employee
-VALUES (012,'Lin','Miyazaki');
+INSERT INTO employee VALUES (001,'John','Doe');
+INSERT INTO employee VALUES (002,'Jane','Smith');
+INSERT INTO employee VALUES (003,'Robert','Brown');
+INSERT INTO employee VALUES (004,'Emily','Johnson');
+INSERT INTO employee VALUES (005,'Paul','Delores');
+INSERT INTO employee VALUES (006,'Channing','Bosum');
+INSERT INTO employee VALUES (007,'Shaun','Jacobson');
+INSERT INTO employee VALUES (008,'Lauren','Moser');
+INSERT INTO employee VALUES (009,'Tina','Shaw');
+INSERT INTO employee VALUES (010,'Pradeep','Singh');
+INSERT INTO employee VALUES (011,'Farukh','Khan');
+INSERT INTO employee VALUES (012,'Lin','Miyazaki');
 
-INSERT INTO pilot
-VALUES (1,001,1001);
-INSERT INTO pilot
-VALUES (2,003,1002);
-INSERT INTO pilot
-VALUES (3,011,1003);
-INSERT INTO pilot
-VALUES (4,012,1004);
+INSERT INTO pilot VALUES (1,001,1001);
+INSERT INTO pilot VALUES (2,003,1002);
+INSERT INTO pilot VALUES (3,011,1003);
+INSERT INTO pilot VALUES (4,012,1004);
 
-INSERT INTO airplane
-VALUES (2536,'AB9735','Air Bus 25','Air Hawk');
-INSERT INTO airplane
-VALUES (6475,'BN3749','Boeing32','Aerial Crusaders');
-INSERT INTO airplane
-VALUES (9874,'CF9949','Boeing747','West Jet');
-INSERT INTO airplane
-VALUES (9072,'GH0124','Boeing747','Sun Wing');
+INSERT INTO airplane VALUES (2536,'AB9735','Air Bus 25','Air Hawk');
+INSERT INTO airplane VALUES (6475,'BN3749','Boeing32','Aerial Crusaders');
+INSERT INTO airplane VALUES (9874,'CF9949','Boeing747','West Jet');
+INSERT INTO airplane VALUES (9072,'GH0124','Boeing747','Sun Wing');
 
-INSERT INTO flight
-VALUES (001, 2536, 1, 'LAX', 'CDG', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '12:30 PM', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '5:00 PM');
-INSERT INTO flight
-VALUES (002, 6475, 2, 'JFK', 'BKK', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '11:00 PM', TO_DATE('2023-08-03', 'YYYY-MM-DD'), '2:30 AM');
-INSERT INTO flight
-VALUES (003, 9874, 3, 'FRA', 'SYD', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '8:00 AM', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '2:30 PM');
-INSERT INTO flight
-VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 PM', TO_DATE('2023-08-09', 'YYYY-MM-DD'), '3:20 AM');
+INSERT INTO flight VALUES (001, 2536, 1, 'LAX', 'CDG', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '12:30 PM', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '5:00 PM');
+INSERT INTO flight VALUES (002, 6475, 2, 'JFK', 'BKK', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '11:00 PM', TO_DATE('2023-08-03', 'YYYY-MM-DD'), '2:30 AM');
+INSERT INTO flight VALUES (003, 9874, 3, 'FRA', 'SYD', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '8:00 AM', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '2:30 PM');
+INSERT INTO flight VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 PM', TO_DATE('2023-08-09', 'YYYY-MM-DD'), '3:20 AM');
 
-INSERT INTO flight_staff
-VALUES (1, 002, 001);
-INSERT INTO flight_staff
-VALUES (2, 004, 002);
+INSERT INTO flight_staff VALUES (1, 002, 001);
+INSERT INTO flight_staff VALUES (2, 004, 002);
 
-INSERT INTO passenger
-VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (103, 'James', 'Anderson', 'james.anderson@example.com', '234-567-8901', '789 Pine St, Los Angeles, CA', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (104, 'Mary', 'Thomas', 'mary.thomas@example.com', '345-678-9012', '321 Oak St, Miami, FL', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (105, 'Patricia', 'Jackson', 'patricia.jackson@example.com', '456-789-0123', '654 Maple St, Dallas, TX', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (106, 'Robert', 'White', 'robert.white@example.com', '567-890-1234', '987 Birch St, Seattle, WA', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (107, 'Linda', 'Harris', 'linda.harris@example.com', '678-901-2345', '111 Cedar St, Boston, MA', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (108, 'Michael', 'Martin', 'michael.martin@example.com', '789-012-3456', '222 Spruce St, Denver, CO', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (109, 'Barbara', 'Thompson', 'barbara.thompson@example.com', '890-123-4567', '333 Fir St, San Francisco, CA', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (110, 'William', 'Garcia', 'william.garcia@example.com', '901-234-5678', '444 Redwood St, Portland, OR', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (111, 'Elizabeth', 'Martinez', 'elizabeth.martinez@example.com', '012-345-6789', '555 Willow St, San Diego, CA', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (112, 'Richard', 'Rodriguez', 'richard.rodriguez@example.com', '123-456-7891', '666 Cypress St, Las Vegas, NV', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (113, 'Susan', 'Clark', 'susan.clark@example.com', '234-567-8902', '777 Pine St, Phoenix, AZ', ticket_seq.NEXTVAL);
-INSERT INTO passenger
-VALUES (114, 'Joseph', 'Lewis', 'joseph.lewis@example.com', '345-678-9013', '888 Oak St, Austin, TX', ticket_seq.NEXTVAL);
-   
+INSERT INTO passenger VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
+INSERT INTO passenger VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
 
-INSERT INTO ticket
-VALUES (1001, 101, 001, 'Economy');
-INSERT INTO ticket
-VALUES (1002, 102, 001, 'Business');
-INSERT INTO ticket
-VALUES (1003, 103, 001, 'Business');
-INSERT INTO ticket
-VALUES (1004, 104, 001, 'Economy');
-INSERT INTO ticket
-VALUES (1005, 105, 001, 'Economy');
-INSERT INTO ticket
-VALUES (1006, 106, 001, 'Economy');
-INSERT INTO ticket
-VALUES (1007, 107, 001, 'Economy');
-INSERT INTO ticket
-VALUES (1008, 108, 002, 'Business');
-INSERT INTO ticket
-VALUES (1009, 109, 002, 'Economy');
-INSERT INTO ticket
-VALUES (1010, 110, 002, 'Business');
-INSERT INTO ticket
-VALUES (1011, 111, 002, 'Economy');
-INSERT INTO ticket
-VALUES (1012, 112, 002, 'First Class');
-INSERT INTO ticket
-VALUES (1013, 113, 002, 'First Class');
-INSERT INTO ticket
-VALUES (1014, 114, 002, 'Economy');
-
-CREATE SEQUENCE ticket_seq
-START WITH 1001  -- Starting point for ticket IDs
-INCREMENT BY 1;  -- Increment ticket IDs by 1 for each new entry
-
+-- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
-select * from passenger;
+SELECT * FROM passenger;
