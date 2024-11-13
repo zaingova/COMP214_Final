@@ -11,6 +11,7 @@ DROP TABLE location CASCADE CONSTRAINTS;
 DROP TABLE luggage CASCADE CONSTRAINTS;
 DROP SEQUENCE ticket_seq;
 DROP FUNCTION get_flight_time;
+DROP INDEX idx_passenger_email;
 
 -- Table creation
 CREATE TABLE location (
@@ -74,7 +75,13 @@ CREATE TABLE flight (
     CONSTRAINT flight_pilot_id_fk FOREIGN KEY ( pilot_id )
         REFERENCES pilot ( pilot_id ),
     CONSTRAINT flight_pilot_id_uk UNIQUE ( pilot_id ),
-    CONSTRAINT flight_arrival_date_ck CHECK ( arrival_date >= departure_date )
+    CONSTRAINT flight_arrival_date_ck CHECK ( arrival_date >= departure_date ),
+    CONSTRAINT flight_origin_fk FOREIGN KEY (origin)
+    REFERENCES location (locationCode),
+    CONSTRAINT flight_destinationwe coukd _fk FOREIGN KEY (destination)
+    REFERENCES location (locationCode),
+    CONSTRAINT flight_origin_dest_diff_ck
+    CHECK (origin != destination)
 );
 
 CREATE TABLE passenger (
@@ -84,7 +91,6 @@ CREATE TABLE passenger (
     email        VARCHAR2(50),
     phone        VARCHAR2(15),
     address      VARCHAR2(100),
-    ticket_num   NUMBER(25),
     CONSTRAINT passenger_passenger_id_pk PRIMARY KEY ( passenger_id )
 );
 
@@ -126,6 +132,10 @@ CREATE TABLE luggage (
 CREATE SEQUENCE ticket_seq
 START WITH 1001
 INCREMENT BY 1;
+
+-- Creating index to search passengers by last name
+CREATE UNIQUE INDEX idx_passenger_email
+ON PASSENGER (email);
 
 -- Inserting data
 INSERT INTO LOCATION 
@@ -189,9 +199,11 @@ INSERT INTO flight_staff VALUES (2, 004, 002);
 INSERT INTO passenger VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
 INSERT INTO passenger VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
 
---insert for table luggage
 INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
 INSERT INTO luggage VALUES (2, 102, 002, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+
+INSERT INTO ticket VALUES (ticket_seq.NEXTVAL, 101, 001, 'Economy');
+INSERT INTO ticket VALUES (ticket_seq.NEXTVAL, 102, 001, 'Economy');
 
 -- PL/SQL function/procedure declaration
 CREATE OR REPLACE FUNCTION get_flight_time(
