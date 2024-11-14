@@ -9,7 +9,7 @@ DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
 DROP TABLE location CASCADE CONSTRAINTS;
 DROP TABLE luggage CASCADE CONSTRAINTS;
-DROP SEQUENCE ticket_seq;
+DROP SEQUENCE passenger_seq;
 DROP FUNCTION get_flight_time;
 DROP INDEX idx_passenger_email;
 
@@ -64,10 +64,8 @@ CREATE TABLE flight (
     pilot_id       NUMBER(10),
     origin         CHAR(3),
     destination    CHAR(3),
-    departure_date DATE,
-    departure_time VARCHAR2(10),
-    arrival_date   DATE,
-    arrival_time   VARCHAR2(10),
+    departure_date TIMESTAMP(1),
+    arrival_date   TIMESTAMP(1),
     CONSTRAINT flight_flight_id_pk PRIMARY KEY ( flight_id ),
     CONSTRAINT flight_airplane_id_fk FOREIGN KEY ( airplane_id )
         REFERENCES airplane ( airplane_id ),
@@ -75,13 +73,12 @@ CREATE TABLE flight (
     CONSTRAINT flight_pilot_id_fk FOREIGN KEY ( pilot_id )
         REFERENCES pilot ( pilot_id ),
     CONSTRAINT flight_pilot_id_uk UNIQUE ( pilot_id ),
-    CONSTRAINT flight_arrival_date_ck CHECK ( arrival_date >= departure_date ),
     CONSTRAINT flight_origin_fk FOREIGN KEY (origin)
-    REFERENCES location (locationCode),
+        REFERENCES location (locationCode),
     CONSTRAINT flight_destination_fk FOREIGN KEY (destination)
-    REFERENCES location (locationCode),
+        REFERENCES location (locationCode),
     CONSTRAINT flight_origin_dest_diff_ck
-    CHECK (origin != destination)
+        CHECK (origin != destination)
 );
 
 CREATE TABLE passenger (
@@ -98,12 +95,16 @@ CREATE TABLE flight_staff (
     staff_id  NUMBER(10),
     employee# NUMBER(10),
     flight_id NUMBER(10),
+    --  designation between 2 and 5 becuase 1 is for pilot which has its own table
+    designation NUMBER(1),
     CONSTRAINT flight_staff_staff_id_pk PRIMARY KEY ( staff_id ),
     CONSTRAINT flight_staff_employee#_fk FOREIGN KEY ( employee# )
         REFERENCES employee ( employee# ),
     CONSTRAINT flight_staff_flight_id_fk FOREIGN KEY ( flight_id )
         REFERENCES flight ( flight_id ),
-    CONSTRAINT flight_staff_employee#_uk UNIQUE ( employee# )
+    CONSTRAINT flight_staff_employee#_uk UNIQUE ( employee# ),
+    CONSTRAINT designation_ck
+        CHECK (designation BETWEEN 2 AND 5)
 );
 
 CREATE TABLE ticket (
@@ -117,33 +118,18 @@ CREATE TABLE ticket (
         REFERENCES flight ( flight_id )
 );
 
-/*CREATE TABLE luggage (
-    luggage_id NUMBER(10) PRIMARY KEY,
-    passenger_id NUMBER(10) NOT NULL,
-    flight_id NUMBER(10) NOT NULL,
-    weight NUMBER(5, 2) NOT NULL,
-    description VARCHAR2(100),
-    CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
-    CONSTRAINT luggage_flight_id_fk FOREIGN KEY (flight_id) REFERENCES flight(flight_id)
-);
-*/
-
 CREATE TABLE luggage (
     luggage_id    NUMBER(10) PRIMARY KEY,
     passenger_id  NUMBER(10) NOT NULL,
     flight_id     NUMBER(10) NOT NULL,
     weight        NUMBER(5, 2) NOT NULL,
     description   VARCHAR2(100),
+    -- Uses a composite key to ensure luggage ends up on the same flight that passengers are booked on
     CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id, flight_id)
         REFERENCES ticket (passenger_id, flight_id)
 );
 
--- Creating sequences for ticket and passenger IDs
-/*CREATE SEQUENCE ticket_seq
-START WITH 1001
-INCREMENT BY 1;
-*/
-
+-- Passenger ID sequence
 CREATE SEQUENCE passenger_seq
 START WITH 100
 INCREMENT BY 1;
@@ -175,7 +161,7 @@ INSERT INTO LOCATION
 VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
 
 INSERT INTO emp_type VALUES (1, 'Pilot');
-INSERT INTO emp_type VALUES (2, 'Flight Staff');
+INSERT INTO emp_type VALUES (2, 'Flight Attendant');
 INSERT INTO emp_type VALUES (3, 'Mechanic');
 INSERT INTO emp_type VALUES (4, 'Baggage Handler');
 INSERT INTO emp_type VALUES (5, 'Aircraft Fueler');
@@ -192,21 +178,38 @@ INSERT INTO employee VALUES (009,'Tina','Shaw');
 INSERT INTO employee VALUES (010,'Pradeep','Singh');
 INSERT INTO employee VALUES (011,'Farukh','Khan');
 INSERT INTO employee VALUES (012,'Lin','Miyazaki');
+INSERT INTO employee VALUES (013, 'Alice', 'Johnson');
+INSERT INTO employee VALUES (014, 'Bob', 'Smith');
+INSERT INTO employee VALUES (015, 'Charlie', 'Brown');
+INSERT INTO employee VALUES (016, 'David', 'Wilson');
+INSERT INTO employee VALUES (017, 'Eve', 'Davis');
+INSERT INTO employee VALUES (018, 'Frank', 'Moore');
+INSERT INTO employee VALUES (019, 'Grace', 'Taylor');
+INSERT INTO employee VALUES (020, 'Hannah', 'Anderson');
 
-INSERT INTO pilot VALUES (1,001,1001);
-INSERT INTO pilot VALUES (2,003,1002);
-INSERT INTO pilot VALUES (3,011,1003);
-INSERT INTO pilot VALUES (4,012,1004);
+INSERT INTO pilot VALUES (1, 001, 1001);
+INSERT INTO pilot VALUES (2, 002, 1002);
+INSERT INTO pilot VALUES (3, 003, 1003);
+INSERT INTO pilot VALUES (4, 004, 1004);
+INSERT INTO pilot VALUES (5, 005, 1005);
+INSERT INTO pilot VALUES (6, 006, 1006);
+INSERT INTO pilot VALUES (7, 007, 1007);
+INSERT INTO pilot VALUES (8, 008, 1008);
+INSERT INTO pilot VALUES (9, 009, 1009);
+INSERT INTO pilot VALUES (10, 010, 1010);
 
 INSERT INTO airplane VALUES (2536,'AB9735','Air Bus 25','Air Hawk');
 INSERT INTO airplane VALUES (6475,'BN3749','Boeing32','Aerial Crusaders');
 INSERT INTO airplane VALUES (9874,'CF9949','Boeing747','West Jet');
 INSERT INTO airplane VALUES (9072,'GH0124','Boeing747','Sun Wing');
+INSERT INTO airplane VALUES (4472, 'GH0125', 'Airbus A320', 'Delta Airlines');
+INSERT INTO airplane VALUES (9074, 'GH0126', 'Boeing 777', 'American Airlines');
+INSERT INTO airplane VALUES (9075, 'GH0127', 'Boeing 787', 'United Airlines');
+INSERT INTO airplane VALUES (1092, 'GH0128', 'Airbus A350', 'Lufthansa');
+INSERT INTO airplane VALUES (7820, 'GH0129', 'Boeing 737', 'Southwest Airlines');
+INSERT INTO airplane VALUES (9078, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
 
-INSERT INTO flight VALUES (001, 2536, 1, 'LAX', 'CDG', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '12:30 PM', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '5:00 PM');
-INSERT INTO flight VALUES (002, 6475, 2, 'JFK', 'BKK', TO_DATE('2023-08-02', 'YYYY-MM-DD'), '11:00 PM', TO_DATE('2023-08-03', 'YYYY-MM-DD'), '2:30 AM');
-INSERT INTO flight VALUES (003, 9874, 3, 'FRA', 'SYD', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '8:00 AM', TO_DATE('2023-08-04', 'YYYY-MM-DD'), '2:30 PM');
-INSERT INTO flight VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YYYY-MM-DD'), '11:30 PM', TO_DATE('2023-08-09', 'YYYY-MM-DD'), '3:20 AM');
+-- *** insert flight data using procedure
 
 INSERT INTO flight_staff VALUES (1, 002, 001);
 INSERT INTO flight_staff VALUES (2, 004, 002);
@@ -221,11 +224,13 @@ INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.w
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
 
-INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
-INSERT INTO luggage VALUES (2, 102, 001, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
-
 INSERT INTO ticket VALUES (101, 001, 'Economy');
 INSERT INTO ticket VALUES (102, 001, 'Economy');
+INSERT INTO ticket VALUES (103, 004, 'Business');
+
+INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
+INSERT INTO luggage VALUES (2, 102, 001, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+INSERT INTO luggage VALUES (3, 103, 004, 35.7, 'Red suitcase with a combination lock');
 
 -- PL/SQL function/procedure declaration
 CREATE OR REPLACE FUNCTION get_flight_time(
@@ -286,8 +291,61 @@ EXCEPTION
         RETURN NULL;
 END get_flight_time;
 
+-- Procedure for calculating and inserting flight data
+CREATE OR REPLACE PROCEDURE insert_flight_data(
+    p_flight_id IN NUMBER,
+    p_airplane_id IN NUMBER,
+    p_pilot_id IN NUMBER,
+    p_origin IN CHAR,
+    p_destination IN CHAR,
+    p_departure_date IN TIMESTAMP
+) IS
+    lv_flight_time NUMBER;
+    lv_arrival_date TIMESTAMP;
+BEGIN
+    lv_flight_time := get_flight_time(p_origin, p_destination);
+    lv_arrival_date := p_departure_date + (lv_flight_time / 24);
+    
+    INSERT INTO flight 
+    VALUES(
+        p_flight_id,
+        p_airplane_id,
+        p_pilot_id,
+        p_origin,
+        p_destination,
+        p_departure_date,
+        lv_arrival_date
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END insert_flight_data;
+
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
+
+-- Test procedure
+DECLARE
+    v_flight_id       NUMBER := 1;
+    v_airplane_id     NUMBER := 2536;
+    v_pilot_id        NUMBER := 1;
+    v_origin          CHAR(3) := 'LAX';
+    v_destination     CHAR(3) := 'HKG';
+    v_departure_date  TIMESTAMP := TIMESTAMP '2023-08-02 14:30:00';
+BEGIN
+    insert_flight_data(
+        v_flight_id, 
+        v_airplane_id, 
+        v_pilot_id, 
+        v_origin, 
+        v_destination, 
+        v_departure_date
+    );
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
 
 --Select tests
 SELECT * FROM pilot;
