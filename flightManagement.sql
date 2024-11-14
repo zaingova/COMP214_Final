@@ -78,7 +78,7 @@ CREATE TABLE flight (
     CONSTRAINT flight_arrival_date_ck CHECK ( arrival_date >= departure_date ),
     CONSTRAINT flight_origin_fk FOREIGN KEY (origin)
     REFERENCES location (locationCode),
-    CONSTRAINT flight_destinationwe coukd _fk FOREIGN KEY (destination)
+    CONSTRAINT flight_destination_fk FOREIGN KEY (destination)
     REFERENCES location (locationCode),
     CONSTRAINT flight_origin_dest_diff_ck
     CHECK (origin != destination)
@@ -107,18 +107,17 @@ CREATE TABLE flight_staff (
 );
 
 CREATE TABLE ticket (
-    ticket_id     NUMBER(10),
     passenger_id  NUMBER(10),
     flight_id     NUMBER(10),
     seating_class VARCHAR2(15),
-    CONSTRAINT ticket_ticket_id_pk PRIMARY KEY ( ticket_id ),
+    CONSTRAINT ticket_ticket_id_pk PRIMARY KEY ( passenger_id, flight_id ),
     CONSTRAINT ticket_passenger_id_fk FOREIGN KEY ( passenger_id )
         REFERENCES passenger ( passenger_id ),
     CONSTRAINT ticket_flight_id_fk FOREIGN KEY ( flight_id )
         REFERENCES flight ( flight_id )
 );
 
-CREATE TABLE luggage (
+/*CREATE TABLE luggage (
     luggage_id NUMBER(10) PRIMARY KEY,
     passenger_id NUMBER(10) NOT NULL,
     flight_id NUMBER(10) NOT NULL,
@@ -127,10 +126,26 @@ CREATE TABLE luggage (
     CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
     CONSTRAINT luggage_flight_id_fk FOREIGN KEY (flight_id) REFERENCES flight(flight_id)
 );
+*/
 
--- Creating sequence for ticket IDs
-CREATE SEQUENCE ticket_seq
+CREATE TABLE luggage (
+    luggage_id    NUMBER(10) PRIMARY KEY,
+    passenger_id  NUMBER(10) NOT NULL,
+    flight_id     NUMBER(10) NOT NULL,
+    weight        NUMBER(5, 2) NOT NULL,
+    description   VARCHAR2(100),
+    CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id, flight_id)
+        REFERENCES ticket (passenger_id, flight_id)
+);
+
+-- Creating sequences for ticket and passenger IDs
+/*CREATE SEQUENCE ticket_seq
 START WITH 1001
+INCREMENT BY 1;
+*/
+
+CREATE SEQUENCE passenger_seq
+START WITH 100
 INCREMENT BY 1;
 
 -- Creating index to search passengers by last name
@@ -196,14 +211,21 @@ INSERT INTO flight VALUES (004, 9072, 4, 'ORD', 'CDG', TO_DATE('2023-08-08', 'YY
 INSERT INTO flight_staff VALUES (1, 002, 001);
 INSERT INTO flight_staff VALUES (2, 004, 002);
 
-INSERT INTO passenger VALUES (101, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', ticket_seq.NEXTVAL);
-INSERT INTO passenger VALUES (102, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', ticket_seq.NEXTVAL);
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Bob', 'Johnson', 'bob.johnson@example.com', '234-567-8901', '456 Elm St, San Francisco, CA');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Charlie', 'Brown', 'charlie.brown@example.com', '345-678-9012', '789 Pine St, Los Angeles, CA');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Davis', 'david.davis@example.com', '456-789-0123', '101 Maple Ave, Chicago, IL');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Eva', 'Miller', 'eva.miller@example.com', '567-890-1234', '202 Oak Rd, Miami, FL');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.wilson@example.com', '678-901-2345', '303 Birch Blvd, Houston, TX');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
 
 INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
-INSERT INTO luggage VALUES (2, 102, 002, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+INSERT INTO luggage VALUES (2, 102, 001, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
 
-INSERT INTO ticket VALUES (ticket_seq.NEXTVAL, 101, 001, 'Economy');
-INSERT INTO ticket VALUES (ticket_seq.NEXTVAL, 102, 001, 'Economy');
+INSERT INTO ticket VALUES (101, 001, 'Economy');
+INSERT INTO ticket VALUES (102, 001, 'Economy');
 
 -- PL/SQL function/procedure declaration
 CREATE OR REPLACE FUNCTION get_flight_time(
