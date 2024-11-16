@@ -12,6 +12,8 @@ DROP TABLE luggage CASCADE CONSTRAINTS;
 DROP SEQUENCE passenger_seq;
 DROP FUNCTION get_flight_time;
 DROP INDEX idx_passenger_email;
+DROP INDEX idx_employee_last_name;
+DROP INDEX idx_flight_staff_flight_id;
 
 -- Table creation
 CREATE TABLE location (
@@ -346,6 +348,54 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 END;
+
+
+-- This update use the sequence passenger_seq to add ref id to the address.
+-- We are only updating one passenger .
+-- It show how sequence can be used in update, not just insert.
+UPDATE passenger
+SET address = address || ' (Ref ID: ' || passenger_seq.NEXTVAL || ')'
+WHERE passenger_id = 100;
+
+--  an index on the last_name column in the employee table that makes it easy to search for employee
+CREATE INDEX idx_employee_last_name
+ON employee (last_name);
+
+--  this one is the tes index which we created index only help to get this data quickly it might not be noticeable here but for big data base it is 
+SELECT * 
+FROM employee
+WHERE last_name = 'Smith';
+
+-- an index on the flight_id column in the flight_staff table
+CREATE INDEX idx_flight_staff_flight_id
+ON flight_staff (flight_id);
+
+-- this one is the test index which we created index only help to get this data quickly it might not be noticeable here but for big data base it is 
+SELECT * 
+FROM flight_staff
+WHERE flight_id = 1;
+
+
+-- Trigger to log the full name after an insert or update on employee table , when we bring any changes to employess it displays first the full name of that
+CREATE OR REPLACE TRIGGER trg_employee_full_name
+AFTER INSERT OR UPDATE OF first_name, last_name ON employee
+FOR EACH ROW
+BEGIN
+    
+    DBMS_OUTPUT.PUT_LINE('Employee Full Name: ' || :NEW.first_name || ' ' || :NEW.last_name);
+END trg_employee_full_name;
+/
+-- i tested the trigger after inserting new employess
+SET SERVEROUTPUT ON;
+INSERT INTO employee (employee#, first_name, last_name)
+VALUES (21, 'Michael', 'Scott');
+
+-- it tested the trigger after update the table
+UPDATE employee
+SET first_name = 'Jim', last_name = 'Halpert'
+WHERE employee# = 21;
+
+
 
 --Select tests
 SELECT * FROM pilot;
