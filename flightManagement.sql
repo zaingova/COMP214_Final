@@ -97,7 +97,7 @@ CREATE TABLE flight_staff (
     staff_id  NUMBER(10),
     employee# NUMBER(10),
     flight_id NUMBER(10),
-    --  designation between 2 and 5 becuase 1 is for pilot which has its own table
+    --  designation between 1 and 5 becuase
     designation NUMBER(1),
     CONSTRAINT flight_staff_staff_id_pk PRIMARY KEY ( staff_id ),
     CONSTRAINT flight_staff_employee#_fk FOREIGN KEY ( employee# )
@@ -162,7 +162,7 @@ VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
 INSERT INTO LOCATION 
 VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
 
-INSERT INTO emp_type VALUES (1, 'Pilot');
+INSERT INTO emp_type VALUES (1, 'Airplane Cleaner');
 INSERT INTO emp_type VALUES (2, 'Flight Attendant');
 INSERT INTO emp_type VALUES (3, 'Mechanic');
 INSERT INTO emp_type VALUES (4, 'Baggage Handler');
@@ -213,9 +213,6 @@ INSERT INTO airplane VALUES (9078, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx')
 
 -- *** insert flight data using procedure
 
-INSERT INTO flight_staff VALUES (1, 002, 001);
-INSERT INTO flight_staff VALUES (2, 004, 002);
-
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Bob', 'Johnson', 'bob.johnson@example.com', '234-567-8901', '456 Elm St, San Francisco, CA');
@@ -225,6 +222,12 @@ INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Eva', 'Miller', 'eva.mille
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.wilson@example.com', '678-901-2345', '303 Birch Blvd, Houston, TX');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
+
+insert into flight values(001, 2536, 1, 'LAX', 'JFK', '2023-08-02 14:30:00', '2023-08-02 14:30:00');
+insert into flight values(004, 7820, 2, 'LAX', 'JFK', '2023-08-02 14:30:00', '2023-08-02 14:30:00');
+
+INSERT INTO flight_staff VALUES (1, 001, 001, 2);
+INSERT INTO flight_staff VALUES (2, 004, 004, 2);
 
 INSERT INTO ticket VALUES (101, 001, 'Economy');
 INSERT INTO ticket VALUES (102, 001, 'Economy');
@@ -328,11 +331,11 @@ SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
 
 -- Test procedure
 DECLARE
-    v_flight_id       NUMBER := 1;
-    v_airplane_id     NUMBER := 2536;
-    v_pilot_id        NUMBER := 1;
+    v_flight_id       NUMBER := 2;
+    v_airplane_id     NUMBER := 9874;
+    v_pilot_id        NUMBER := 3;
     v_origin          CHAR(3) := 'LAX';
-    v_destination     CHAR(3) := 'HKG';
+    v_destination     CHAR(3) := 'JFK';
     v_departure_date  TIMESTAMP := TIMESTAMP '2023-08-02 14:30:00';
 BEGIN
     insert_flight_data(
@@ -366,6 +369,8 @@ SELECT *
 FROM employee
 WHERE last_name = 'Smith';
 
+select * from flight;
+
 -- an index on the flight_id column in the flight_staff table
 CREATE INDEX idx_flight_staff_flight_id
 ON flight_staff (flight_id);
@@ -375,7 +380,6 @@ SELECT *
 FROM flight_staff
 WHERE flight_id = 1;
 
-
 -- Trigger to log the full name after an insert or update on employee table , when we bring any changes to employess it displays first the full name of that
 CREATE OR REPLACE TRIGGER trg_employee_full_name
 AFTER INSERT OR UPDATE OF first_name, last_name ON employee
@@ -384,7 +388,7 @@ BEGIN
     
     DBMS_OUTPUT.PUT_LINE('Employee Full Name: ' || :NEW.first_name || ' ' || :NEW.last_name);
 END trg_employee_full_name;
-/
+
 -- i tested the trigger after inserting new employess
 SET SERVEROUTPUT ON;
 INSERT INTO employee (employee#, first_name, last_name)
@@ -394,7 +398,6 @@ VALUES (21, 'Michael', 'Scott');
 UPDATE employee
 SET first_name = 'Jim', last_name = 'Halpert'
 WHERE employee# = 21;
-
 
 -- trigger 2
 -- here we create a trigger,This one is not so complicated.
@@ -411,7 +414,6 @@ BEGIN
     -- Here we use DBMS_OUTPUT.PUT_LINE to print out a simple message.
     DBMS_OUTPUT.PUT_LINE('New Location Added: Code = ' || :NEW.locationCode || ', Description = ' || :NEW.locationDesc);
 END trg_new_location;
-/
 
 SET SERVEROUTPUT ON;
 -- We add a new row to the location table, something like this:
