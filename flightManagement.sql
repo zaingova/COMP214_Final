@@ -396,6 +396,30 @@ SET first_name = 'Jim', last_name = 'Halpert'
 WHERE employee# = 21;
 
 
+-- trigger 2
+-- here we create a trigger,This one is not so complicated.
+-- It will work on the location table.
+-- This trigger is fired after we insert a new row into the location table.
+-- Like, if we add a new airport or something, it will trigger and print a message.
+
+CREATE OR REPLACE TRIGGER trg_new_location
+-- AFTER INSERT means it will do its work after the data is added.
+AFTER INSERT ON location
+-- FOR EACH ROW means, it runs for every new row we add to the table.
+FOR EACH ROW
+BEGIN
+    -- Here we use DBMS_OUTPUT.PUT_LINE to print out a simple message.
+    DBMS_OUTPUT.PUT_LINE('New Location Added: Code = ' || :NEW.locationCode || ', Description = ' || :NEW.locationDesc);
+END trg_new_location;
+/
+
+SET SERVEROUTPUT ON;
+-- We add a new row to the location table, something like this:
+INSERT INTO location 
+VALUES ('SIN', 'Singapore Changi Airport', 8, 1.3644, 103.9915);
+
+-- It will print: New Location Added: Code = SIN, Description = Singapore Changi Airport
+-- So, every time we insert a new location, this will happen.
 
 --Select tests
 SELECT * FROM pilot;
