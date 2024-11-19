@@ -11,6 +11,8 @@ DROP TABLE location CASCADE CONSTRAINTS;
 DROP TABLE luggage CASCADE CONSTRAINTS;
 DROP SEQUENCE passenger_seq;
 DROP SEQUENCE flight_seq;
+DROP SEQUENCE pilot_seq;
+DROP SEQUENCE airplane_seq;
 DROP FUNCTION get_flight_time;
 DROP INDEX idx_passenger_email;
 DROP INDEX idx_employee_last_name;
@@ -191,6 +193,26 @@ EXCEPTION
         RETURN NULL;
 END get_flight_time;
 
+-- Passenger ID sequence
+CREATE SEQUENCE passenger_seq
+START WITH 100
+INCREMENT BY 1;
+
+-- FLight ID sequence
+CREATE SEQUENCE flight_seq
+START with 1000
+INCREMENT BY 1;
+
+-- Airplane ID sequence
+CREATE SEQUENCE airplane_seq
+START WITH 9000
+INCREMENT BY 10;
+
+-- Pilot id sequence (used for procedure)
+CREATE SEQUENCE pilot_seq
+START WITH 1
+INCREMENT BY 1;
+
 -- Procedure for calculating and inserting flight data
 CREATE OR REPLACE PROCEDURE insert_flight_data(
     p_origin IN CHAR,
@@ -200,7 +222,17 @@ CREATE OR REPLACE PROCEDURE insert_flight_data(
     lv_flight_time NUMBER;
     lv_arrival_date TIMESTAMP;
     lv_airplane_id NUMBER;
+    
+    -- define cursor for pulling airplane and pilot IDs from respective tables
+    CURSOR airplane_cursor IS
+        SELECT airplane_id
+        FROM airplane;
 BEGIN
+        -- Calculate the flight time and arrival date
+        lv_flight_time := get_flight_time(p_origin, p_destination);
+        lv_arrival_date := p_departure_date + (lv_flight_time / 24);
+        lv_airplane_id := airplane_seq.NEXTVAL;
+        
         -- Insert into the flight table
         INSERT INTO flight (
             flight_id,
@@ -223,28 +255,6 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 END insert_flight_data;
-
-select * from flight;
-
--- Passenger ID sequence
-CREATE SEQUENCE passenger_seq
-START WITH 100
-INCREMENT BY 1;
-
--- FLight ID sequence
-CREATE SEQUENCE flight_seq
-START with 1000
-INCREMENT BY 1;
-
--- Airplane ID sequence
-CREATE SEQUENCE airplane_seq
-START WITH 9000
-INCREMENT BY 10;
-
--- Pilot id sequence (used for procedure)
-CREATE SEQUENCE pilot_seq
-START WITH 1
-INCREMENT BY 1;
 
 -- Creating index to search passengers by last name
 CREATE UNIQUE INDEX idx_passenger_email
@@ -323,8 +333,18 @@ INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx')
 
 -- inserting flight data using procedure
 BEGIN
-    insert_flight_data('JFK', 'LAX', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('FRA', 'JFK', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('LHR', 'ORD', TO_TIMESTAMP('2024-11-19 10:30:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('SYD', 'DXB', TO_TIMESTAMP('2024-11-19 12:45:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('BKK', 'CDG', TO_TIMESTAMP('2024-11-19 14:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('LAX', 'HKG', TO_TIMESTAMP('2024-11-19 16:30:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('ORD', 'LAX', TO_TIMESTAMP('2024-11-19 18:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('JFK', 'LHR', TO_TIMESTAMP('2024-11-19 20:15:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('DXB', 'SYD', TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+    insert_flight_data('FRA', 'BKK', TO_TIMESTAMP('2024-11-20 11:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 END;
+
+select * from flight;
 
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
