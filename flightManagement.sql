@@ -10,6 +10,7 @@ DROP TABLE emp_type CASCADE CONSTRAINTS;
 DROP TABLE location CASCADE CONSTRAINTS;
 DROP TABLE luggage CASCADE CONSTRAINTS;
 DROP SEQUENCE passenger_seq;
+DROP SEQUENCE flight_seq;
 DROP FUNCTION get_flight_time;
 DROP INDEX idx_passenger_email;
 DROP INDEX idx_employee_last_name;
@@ -131,9 +132,118 @@ CREATE TABLE luggage (
         REFERENCES ticket (passenger_id, flight_id)
 );
 
+-- PL/SQL function/procedure declaration
+CREATE OR REPLACE FUNCTION get_flight_time(
+    p_from_location IN CHAR,
+    p_to_location IN CHAR
+) RETURN NUMBER IS
+    v_latitude_from NUMBER(9,6);
+    v_longitude_from NUMBER(9,6);
+    v_latitude_to NUMBER(9,6);
+    v_longitude_to NUMBER(9,6);
+    v_flight_time NUMBER;
+
+BEGIN
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_from, v_longitude_from
+        FROM LOCATION
+        WHERE locationCode = p_from_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for From location: ' || p_from_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching From location: ' || SQLERRM);
+            RETURN NULL;
+    END;
+
+    BEGIN
+        SELECT latitude, longitude
+        INTO v_latitude_to, v_longitude_to
+        FROM LOCATION
+        WHERE locationCode = p_to_location;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No data found for To location: ' || p_to_location);
+            RETURN NULL;
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error fetching To location: ' || SQLERRM);
+            RETURN NULL;
+    END;
+
+    DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
+    DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
+
+    v_flight_time := ROUND(6371 * 2 * ASIN(
+                        SQRT(
+                            SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
+                            COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
+                            SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
+                        ) / 800
+                    ), 2);
+
+    RETURN v_flight_time;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
+        RETURN NULL;
+END get_flight_time;
+
+-- Procedure for calculating and inserting flight data
+CREATE OR REPLACE PROCEDURE insert_flight_data(
+    p_origin IN CHAR,
+    p_destination IN CHAR,
+    p_departure_date IN TIMESTAMP
+) IS
+    lv_flight_time NUMBER;
+    lv_arrival_date TIMESTAMP;
+    lv_airplane_id NUMBER;
+BEGIN
+        -- Insert into the flight table
+        INSERT INTO flight (
+            flight_id,
+            airplane_id,
+            pilot_id,
+            origin,
+            destination,
+            departure_date,
+            arrival_date
+        ) VALUES (
+            flight_seq.NEXTVAL,
+            lv_airplane_id,
+            pilot_seq.NEXTVAL,
+            p_origin,
+            p_destination,
+            p_departure_date,
+            lv_arrival_date
+        );
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END insert_flight_data;
+
+select * from flight;
+
 -- Passenger ID sequence
 CREATE SEQUENCE passenger_seq
 START WITH 100
+INCREMENT BY 1;
+
+-- FLight ID sequence
+CREATE SEQUENCE flight_seq
+START with 1000
+INCREMENT BY 1;
+
+-- Airplane ID sequence
+CREATE SEQUENCE airplane_seq
+START WITH 9000
+INCREMENT BY 10;
+
+-- Pilot id sequence (used for procedure)
+CREATE SEQUENCE pilot_seq
+START WITH 1
 INCREMENT BY 1;
 
 -- Creating index to search passengers by last name
@@ -200,18 +310,21 @@ INSERT INTO pilot VALUES (8, 008, 1008);
 INSERT INTO pilot VALUES (9, 009, 1009);
 INSERT INTO pilot VALUES (10, 010, 1010);
 
-INSERT INTO airplane VALUES (2536,'AB9735','Air Bus 25','Air Hawk');
-INSERT INTO airplane VALUES (6475,'BN3749','Boeing32','Aerial Crusaders');
-INSERT INTO airplane VALUES (9874,'CF9949','Boeing747','West Jet');
-INSERT INTO airplane VALUES (9072,'GH0124','Boeing747','Sun Wing');
-INSERT INTO airplane VALUES (4472, 'GH0125', 'Airbus A320', 'Delta Airlines');
-INSERT INTO airplane VALUES (9074, 'GH0126', 'Boeing 777', 'American Airlines');
-INSERT INTO airplane VALUES (9075, 'GH0127', 'Boeing 787', 'United Airlines');
-INSERT INTO airplane VALUES (1092, 'GH0128', 'Airbus A350', 'Lufthansa');
-INSERT INTO airplane VALUES (7820, 'GH0129', 'Boeing 737', 'Southwest Airlines');
-INSERT INTO airplane VALUES (9078, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
+INSERT INTO airplane VALUES (9000,'AB9735','Air Bus 25','Air Hawk');
+INSERT INTO airplane VALUES (9010,'BN3749','Boeing32','Aerial Crusaders');
+INSERT INTO airplane VALUES (9020,'CF9949','Boeing747','West Jet');
+INSERT INTO airplane VALUES (9030,'GH0124','Boeing747','Sun Wing');
+INSERT INTO airplane VALUES (9040, 'GH0125', 'Airbus A320', 'Delta Airlines');
+INSERT INTO airplane VALUES (9050, 'GH0126', 'Boeing 777', 'American Airlines');
+INSERT INTO airplane VALUES (9060, 'GH0127', 'Boeing 787', 'United Airlines');
+INSERT INTO airplane VALUES (9070, 'GH0128', 'Airbus A350', 'Lufthansa');
+INSERT INTO airplane VALUES (9080, 'GH0129', 'Boeing 737', 'Southwest Airlines');
+INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
 
--- *** insert flight data using procedure
+-- inserting flight data using procedure
+BEGIN
+    insert_flight_data('JFK', 'LAX', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+END;
 
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
@@ -237,121 +350,8 @@ INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels d
 INSERT INTO luggage VALUES (2, 102, 001, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
 INSERT INTO luggage VALUES (3, 103, 004, 35.7, 'Red suitcase with a combination lock');
 
--- PL/SQL function/procedure declaration
-CREATE OR REPLACE FUNCTION get_flight_time(
-    p_from_location IN CHAR,
-    p_to_location IN CHAR
-) RETURN NUMBER IS
-    v_latitude_from NUMBER(9,6);
-    v_longitude_from NUMBER(9,6);
-    v_latitude_to NUMBER(9,6);
-    v_longitude_to NUMBER(9,6);
-    v_flight_time NUMBER;
-
-BEGIN
-    BEGIN
-        SELECT latitude, longitude
-        INTO v_latitude_from, v_longitude_from
-        FROM LOCATION
-        WHERE locationCode = p_from_location;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('No data found for From location: ' || p_from_location);
-            RETURN NULL;
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('Error fetching From location: ' || SQLERRM);
-            RETURN NULL;
-    END;
-
-    BEGIN
-        SELECT latitude, longitude
-        INTO v_latitude_to, v_longitude_to
-        FROM LOCATION
-        WHERE locationCode = p_to_location;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('No data found for To location: ' || p_to_location);
-            RETURN NULL;
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('Error fetching To location: ' || SQLERRM);
-            RETURN NULL;
-    END;
-
-    DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
-    DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
-
-    v_flight_time := ROUND(6371 * 2 * ASIN(
-                        SQRT(
-                            SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
-                            COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
-                            SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
-                        ) / 800
-                    ), 2);
-
-    RETURN v_flight_time;
-
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
-        RETURN NULL;
-END get_flight_time;
-
--- Procedure for calculating and inserting flight data
-CREATE OR REPLACE PROCEDURE insert_flight_data(
-    p_flight_id IN NUMBER,
-    p_airplane_id IN NUMBER,
-    p_pilot_id IN NUMBER,
-    p_origin IN CHAR,
-    p_destination IN CHAR,
-    p_departure_date IN TIMESTAMP
-) IS
-    lv_flight_time NUMBER;
-    lv_arrival_date TIMESTAMP;
-BEGIN
-    lv_flight_time := get_flight_time(p_origin, p_destination);
-    lv_arrival_date := p_departure_date + (lv_flight_time / 24);
-    
-    INSERT INTO flight 
-    VALUES(
-        p_flight_id,
-        p_airplane_id,
-        p_pilot_id,
-        p_origin,
-        p_destination,
-        p_departure_date,
-        lv_arrival_date
-    );
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
-END insert_flight_data;
-
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
-
--- Test procedure
-DECLARE
-    v_flight_id       NUMBER := 2;
-    v_airplane_id     NUMBER := 9874;
-    v_pilot_id        NUMBER := 3;
-    v_origin          CHAR(3) := 'LAX';
-    v_destination     CHAR(3) := 'JFK';
-    v_departure_date  TIMESTAMP := TIMESTAMP '2023-08-02 14:30:00';
-BEGIN
-    insert_flight_data(
-        v_flight_id, 
-        v_airplane_id, 
-        v_pilot_id, 
-        v_origin, 
-        v_destination, 
-        v_departure_date
-    );
-    
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
-END;
-
 
 -- This update use the sequence passenger_seq to add ref id to the address.
 -- We are only updating one passenger .
