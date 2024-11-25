@@ -27,6 +27,7 @@ DROP FUNCTION check_additional_charge;
 DROP PROCEDURE calculate_total_price;
 DROP PROCEDURE print_price_details;
 DROP PACKAGE ticket_pricing_pkg;
+DROP PACKAGE BODY ticket_pricing_pkg;
 
 -- Table creation
 CREATE TABLE location (
