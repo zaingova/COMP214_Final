@@ -77,6 +77,7 @@ CREATE TABLE airplane (
 CREATE TABLE flight (
     flight_id      NUMBER(10),
     airplane_id    NUMBER(10),
+    flight_type VARCHAR2(20),
     pilot_id       NUMBER(10),
     origin         CHAR(3),
     destination    CHAR(3),
@@ -104,6 +105,7 @@ CREATE TABLE passenger (
     email        VARCHAR2(50),
     phone        VARCHAR2(15),
     address      VARCHAR2(100),
+    airbus_membership VARCHAR2(20),
     CONSTRAINT passenger_passenger_id_pk PRIMARY KEY ( passenger_id )
 );
 
@@ -127,6 +129,7 @@ CREATE TABLE ticket (
     passenger_id  NUMBER(10),
     flight_id     NUMBER(10),
     seating_class VARCHAR2(15),
+    ticket_id     NUMBER(10),
     CONSTRAINT ticket_ticket_id_pk PRIMARY KEY ( passenger_id, flight_id ),
     CONSTRAINT ticket_passenger_id_fk FOREIGN KEY ( passenger_id )
         REFERENCES passenger ( passenger_id ),
@@ -374,12 +377,12 @@ INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.w
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
 
-INSERT INTO flight_staff VALUES (1, 001, 001, 2);
-INSERT INTO flight_staff VALUES (2, 004, 004, 2);
+INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
+INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
 
-INSERT INTO ticket VALUES (101, 1000, 'Economy');
-INSERT INTO ticket VALUES (102, 1000, 'Economy');
-INSERT INTO ticket VALUES (103, 1000, 'Business');
+INSERT INTO ticket VALUES (101, 1000, 'Economy', 900);
+INSERT INTO ticket VALUES (102, 1000, 'Economy', 901);
+INSERT INTO ticket VALUES (103, 1000, 'Business', 902);
 
 select * from passenger;
 select * from ticket;
@@ -476,52 +479,9 @@ SELECT * FROM emp_type;
 SELECT * FROM location;
 SELECT * FROM luggage;
 
--- Add airbus_membership column to passenger table (values = member vs non_member)
---membership discount = 5% from the overall cost
-ALTER TABLE passenger
-ADD airbus_membership VARCHAR2(20);
-
--- Add flight_type column to flight table (values = domestic vs international)
---ECONOMY CLASS == Domestic ticket = $400, Internationsl ticket = $1200
-ALTER TABLE flight
-ADD flight_type VARCHAR2(20);
-
---BUSINESS CLASS == Domestic ticket = $1300, Internationsl ticket = $6900
---checked bag limit weight = 32kg , overcharge = $3 per kg
-
 --add ticket_id to ticket table
 ALTER TABLE ticket
 ADD ticket_id NUMBER(10);
-
---new values to test the following tasks:
--- Insert data into location table
--- Insert data into location table
-INSERT INTO location (locationCode, locationDesc, utcOffset, latitude, longitude) VALUES ('SIN', 'Singapore Changi Airport', 8, 1.3644, 103.9915);
-INSERT INTO location (locationCode, locationDesc, utcOffset, latitude, longitude) VALUES ('JFK', 'John F. Kennedy International Airport', -5, 40.6413, -73.7781);
-INSERT INTO location (locationCode, locationDesc, utcOffset, latitude, longitude) VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
-INSERT INTO location (locationCode, locationDesc, utcOffset, latitude, longitude) VALUES ('HND', 'Tokyo Haneda Airport', 9, 35.5494, 139.7798);
-INSERT INTO location (locationCode, locationDesc, utcOffset, latitude, longitude) VALUES ('DXB', 'Dubai International Airport', 4, 25.2532, 55.3657);
-
--- Insert data into pilot table
--- INSERT INTO pilot (pilot_id, first_name, last_name) VALUES (1, 'John', 'Doe');
--- INSERT INTO pilot (pilot_id, first_name, last_name) VALUES (2, 'Jane', 'Smith');
--- INSERT INTO pilot (pilot_id, first_name, last_name) VALUES (3, 'Mike', 'Johnson');
--- INSERT INTO pilot (pilot_id, first_name, last_name) VALUES (4, 'Emily', 'Davis');
--- INSERT INTO pilot (pilot_id, first_name, last_name) VALUES (5, 'Chris', 'Brown');
-
--- Insert data into airplane table
--- INSERT INTO airplane (airplane_id, model, capacity) VALUES (1, 'Boeing 737', 180);
--- INSERT INTO airplane (airplane_id, model, capacity) VALUES (2, 'Airbus A320', 150);
--- INSERT INTO airplane (airplane_id, model, capacity) VALUES (3, 'Boeing 777', 300);
--- INSERT INTO airplane (airplane_id, model, capacity) VALUES (4, 'Airbus A380', 500);
--- INSERT INTO airplane (airplane_id, model, capacity) VALUES (5, 'Boeing 787', 250);
-
--- Insert data into employee table
--- INSERT INTO employee (employee#, first_name, last_name) VALUES (1, 'Alice', 'Williams');
--- INSERT INTO employee (employee#, first_name, last_name) VALUES (2, 'Bob', 'Miller');
--- INSERT INTO employee (employee#, first_name, last_name) VALUES (3, 'Charlie', 'Wilson');
--- INSERT INTO employee (employee#, first_name, last_name) VALUES (4, 'David', 'Moore');
--- INSERT INTO employee (employee#, first_name, last_name) VALUES (5, 'Eve', 'Taylor');
 
 -- Insert data into flight_staff table
 INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (1, 1, 1, 2);
@@ -902,9 +862,11 @@ BEGIN
     ticket_pricing_pkg.get_base_ticket_price(1, UPPER('economy'), lv_base_price);
     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
 END;
+/
 
 
 -- Task 2: check_additional_charge
+/
 DECLARE
     lv_overcharge NUMBER;
 BEGIN
