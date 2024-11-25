@@ -147,6 +147,7 @@ CREATE TABLE luggage (
 
 
 -- PL/SQL function/procedure declaration
+/
 CREATE OR REPLACE FUNCTION get_flight_time(
     p_from_location IN CHAR,
     p_to_location IN CHAR
@@ -204,6 +205,7 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Unexpected error: ' || SQLERRM);
         RETURN NULL;
 END get_flight_time;
+/
 
 -- Passenger ID sequence
 CREATE SEQUENCE passenger_seq
@@ -226,6 +228,7 @@ START WITH 1
 INCREMENT BY 1;
 
 -- Procedure for calculating and inserting flight data
+/
 CREATE OR REPLACE PROCEDURE insert_flight_data(
     p_origin IN CHAR,
     p_destination IN CHAR,
@@ -267,6 +270,7 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 END insert_flight_data;
+/
 
 -- Creating index to search passengers by last name
 CREATE UNIQUE INDEX idx_passenger_email
@@ -344,6 +348,7 @@ INSERT INTO airplane VALUES (9080, 'GH0129', 'Boeing 737', 'Southwest Airlines')
 INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
 
 -- inserting flight data using procedure
+/
 BEGIN
     insert_flight_data('FRA', 'JFK', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'));
     insert_flight_data('LHR', 'ORD', TO_TIMESTAMP('2024-11-19 10:30:00', 'YYYY-MM-DD HH24:MI:SS'));
@@ -355,6 +360,7 @@ BEGIN
     insert_flight_data('DXB', 'SYD', TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'));
     insert_flight_data('FRA', 'BKK', TO_TIMESTAMP('2024-11-20 11:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 END;
+/
 
 select * from flight;
 
@@ -368,19 +374,20 @@ INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.w
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
 INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
 
-insert into flight values(001, 2536, 1, 'LAX', 'JFK', '2023-08-02 14:30:00', '2023-08-02 14:30:00');
-insert into flight values(004, 7820, 2, 'LAX', 'JFK', '2023-08-02 14:30:00', '2023-08-02 14:30:00');
-
 INSERT INTO flight_staff VALUES (1, 001, 001, 2);
 INSERT INTO flight_staff VALUES (2, 004, 004, 2);
 
-INSERT INTO ticket VALUES (101, 001, 'Economy');
-INSERT INTO ticket VALUES (102, 001, 'Economy');
-INSERT INTO ticket VALUES (103, 004, 'Business');
+INSERT INTO ticket VALUES (101, 1000, 'Economy');
+INSERT INTO ticket VALUES (102, 1000, 'Economy');
+INSERT INTO ticket VALUES (103, 1000, 'Business');
 
-INSERT INTO luggage VALUES (1, 101, 001, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
-INSERT INTO luggage VALUES (2, 102, 001, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
-INSERT INTO luggage VALUES (3, 103, 004, 35.7, 'Red suitcase with a combination lock');
+select * from passenger;
+select * from ticket;
+select * from flight;
+
+INSERT INTO luggage VALUES (1, 101, 1000, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
+INSERT INTO luggage VALUES (2, 102, 1000, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+INSERT INTO luggage VALUES (3, 103, 1000, 35.7, 'Red suitcase with a combination lock');
 
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
@@ -437,6 +444,7 @@ WHERE employee# = 21;
 -- This trigger is fired after we insert a new row into the location table.
 -- Like, if we add a new airport or something, it will trigger and print a message.
 
+/
 CREATE OR REPLACE TRIGGER trg_new_location
 -- AFTER INSERT means it will do its work after the data is added.
 AFTER INSERT ON location
@@ -446,6 +454,7 @@ BEGIN
     -- Here we use DBMS_OUTPUT.PUT_LINE to print out a simple message.
     DBMS_OUTPUT.PUT_LINE('New Location Added: Code = ' || :NEW.locationCode || ', Description = ' || :NEW.locationDesc);
 END trg_new_location;
+/
 
 SET SERVEROUTPUT ON;
 -- We add a new row to the location table, something like this:
@@ -570,6 +579,8 @@ INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) V
 --Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
 SELECT * FROM flight;
 select * from ticket;
+
+/
 CREATE OR REPLACE PROCEDURE get_base_ticket_price (
     p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
@@ -603,16 +614,20 @@ BEGIN
         END IF;
     END IF;
 END;
+/
 
 -- Test Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
+/
 DECLARE
     lv_base_price NUMBER;
 BEGIN
     get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
 END;
+/
 
 --Task 2: Function to Check Additional Charge Based on the Luggage Weight
+/
 CREATE OR REPLACE FUNCTION check_additional_charge (
     p_luggage_weight IN NUMBER
 ) RETURN NUMBER AS
@@ -663,19 +678,20 @@ BEGIN
         p_total_price := p_total_price * 0.95;
     END IF;
 END;
+/
 
 -- Test Task 3: Procedure to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
+/
 DECLARE
     lv_total_price NUMBER;
 BEGIN
     calculate_total_price(1, 1, 35, 1, lv_total_price); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
 END;
-
-
+/
 
 --Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
-
+/
 CREATE OR REPLACE PROCEDURE print_price_details (
     p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
@@ -721,16 +737,17 @@ BEGIN
 
     DBMS_OUTPUT.PUT_LINE('Total Price after Discount: ' || ROUND(lv_total_price, 2));
 END;
+/
 
 -- Test Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
+/
 BEGIN
     print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
 END;
-
-
-
+/
 
 --Task 5: a package to combine all 4 tasks
+/
 CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
         pv_flight_id IN NUMBER,
@@ -757,7 +774,8 @@ CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
         pv_passenger_id IN NUMBER
     );
 END ticket_pricing_pkg;
-
+/
+/
 CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
         pv_flight_id IN NUMBER,
@@ -873,9 +891,11 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
         DBMS_OUTPUT.PUT_LINE('Total Price after Discount: ' || ROUND(lv_total_price, 2));
     END print_price_details;
 END ticket_pricing_pkg;
+/
 
 --Testing the package
 -- Task 1: get_base_ticket_price
+/
 DECLARE
     lv_base_price NUMBER;
 BEGIN
@@ -891,18 +911,21 @@ BEGIN
     lv_overcharge := ticket_pricing_pkg.check_additional_charge(35);
     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
 END;
-
+/
 
 -- Task 3: calculate_total_price
+/
 DECLARE
     lv_total_price NUMBER;
 BEGIN
     ticket_pricing_pkg.calculate_total_price(1, UPPER('economy'), 35, 1, lv_total_price);
     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
 END;
-
+/
 
 -- Task 4: print_price_details
+/
 BEGIN
     ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
 END;
+/
