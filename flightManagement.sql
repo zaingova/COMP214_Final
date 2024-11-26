@@ -37,7 +37,10 @@ DROP PACKAGE ticket_pricing_pkg;
 Drop PACKAGE BODY flight_staff_pkg;
 DROP PACKAGE flight_staff_pkg;
 
--- Table creation ++++++++++++++++++++++++++++++++++++++++++++++++++
+-- set server output = on
+SET SERVEROUTPUT ON;
+
+-- Table creation --------------------------------------
 CREATE TABLE location (
     locationCode CHAR(3),
     locationDesc VARCHAR(50),
@@ -395,7 +398,6 @@ UPDATE passenger
 SET address = address || ' (Ref ID: ' || passenger_seq.NEXTVAL || ')'
 WHERE passenger_id = 100;
 
-
 -- Procedure for calculating and inserting flight data
 CREATE OR REPLACE PROCEDURE insert_flight_data(
     p_origin IN CHAR,
@@ -457,6 +459,7 @@ BEGIN
 END;
 /
 
+select * from flight;
 
 --  an index on the last_name column in the employee table that makes it easy to search for employee
 CREATE INDEX idx_employee_last_name
@@ -485,9 +488,9 @@ BEGIN
     
     DBMS_OUTPUT.PUT_LINE('Employee Full Name: ' || :NEW.first_name || ' ' || :NEW.last_name);
 END trg_employee_full_name;
+/
 
 -- i tested the trigger after inserting new employess
-SET SERVEROUTPUT ON;
 INSERT INTO employee (employee#, first_name, last_name)
 VALUES (021, 'Michael', 'Scott');
 
@@ -512,7 +515,6 @@ BEGIN
 END trg_new_location;
 /
 
-SET SERVEROUTPUT ON;
 -- We add a new row to the location table, something like this:
 INSERT INTO location 
 VALUES ('YYZ', 'Toronto Pearson International Airport', -5, 43.6777, -79.6248);
@@ -556,13 +558,13 @@ END;
 /
 
 -- -- Test (UNCOMMENT FOR TESTING ONLY) Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
--- DECLARE
---     lv_base_price NUMBER;
--- BEGIN
---     get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
---     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
--- END;
--- /
+DECLARE
+     lv_base_price NUMBER;
+ BEGIN
+     get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
+     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+ END;
+/
 
 --Task 2: Function to Check Additional Charge Based on the Luggage Weight
 CREATE OR REPLACE FUNCTION check_additional_charge (
