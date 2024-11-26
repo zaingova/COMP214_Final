@@ -117,22 +117,6 @@ CREATE TABLE passenger (
     CONSTRAINT passenger_passenger_id_pk PRIMARY KEY ( passenger_id )
 );
 
-CREATE TABLE flight_staff (
-    staff_id  NUMBER(10),
-    employee# NUMBER(10),
-    flight_id NUMBER(10),
-    --  designation between 1 and 5 becuase
-    designation NUMBER(1),
-    CONSTRAINT flight_staff_staff_id_pk PRIMARY KEY ( staff_id ),
-    CONSTRAINT flight_staff_employee#_fk FOREIGN KEY ( employee# )
-        REFERENCES employee ( employee# ),
-    CONSTRAINT flight_staff_flight_id_fk FOREIGN KEY ( flight_id )
-        REFERENCES flight ( flight_id ),
-    CONSTRAINT flight_staff_employee#_uk UNIQUE ( employee# ),
-    CONSTRAINT designation_ck
-        CHECK (designation BETWEEN 2 AND 5)
-);
-
 CREATE TABLE ticket (
     passenger_id  NUMBER(10),
     flight_id     NUMBER(10),
@@ -154,6 +138,22 @@ CREATE TABLE luggage (
     -- Uses a composite key to ensure luggage ends up on the same flight that passengers are booked on
     CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id, flight_id)
         REFERENCES ticket (passenger_id, flight_id)
+);
+
+CREATE TABLE flight_staff (
+    staff_id  NUMBER(10),
+    employee# NUMBER(10),
+    flight_id NUMBER(10),
+    --  designation between 1 and 5 becuase
+    designation NUMBER(1),
+    CONSTRAINT flight_staff_staff_id_pk PRIMARY KEY ( staff_id ),
+    CONSTRAINT flight_staff_employee#_fk FOREIGN KEY ( employee# )
+        REFERENCES employee ( employee# ),
+    CONSTRAINT flight_staff_flight_id_fk FOREIGN KEY ( flight_id )
+        REFERENCES flight ( flight_id ),
+    CONSTRAINT flight_staff_employee#_uk UNIQUE ( employee# ),
+    CONSTRAINT designation_ck
+        CHECK (designation BETWEEN 2 AND 5)
 );
 -- Table creation ends ++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -249,6 +249,13 @@ VALUES (4, 9040, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH2
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
 VALUES (5, 9050, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
+-- Inserting data into the passenger table 
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (2, 'Jerry', 'Seinfeld', 'jerry@example.com', '0987654321', '456 Elm St', 'NON_MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (3, 'Bruce', 'Wayne', 'bruce@example.com', '1112223333', '789 Oak St', 'MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (4, 'Clark', 'Kent', 'clark@example.com', '4445556666', '101 Pine St', 'NON_MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (5, 'Diana', 'Prince', 'diana@example.com', '7778889999', '202 Maple St', 'MEMBER');
+
 -- Inserting data into the ticket table 
 INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (1, 1, 'ECONOMY', 1);
 INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (2, 2, 'BUSINESS', 2);
@@ -259,17 +266,6 @@ INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (1
 INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (102, 1000, 'Economy', 901);
 INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (103, 1000, 'Business', 902);
 
--- Inserting data into the flight_staff table 
-INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
-INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
-
--- Inserting data into the passenger table 
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (2, 'Jerry', 'Seinfeld', 'jerry@example.com', '0987654321', '456 Elm St', 'NON_MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (3, 'Bruce', 'Wayne', 'bruce@example.com', '1112223333', '789 Oak St', 'MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (4, 'Clark', 'Kent', 'clark@example.com', '4445556666', '101 Pine St', 'NON_MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (5, 'Diana', 'Prince', 'diana@example.com', '7778889999', '202 Maple St', 'MEMBER');
-
 -- Inserting data into the luggage table 
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 1, 1, 30, 'Checked baggage');
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 2, 2, 35, 'Checked baggage');
@@ -279,6 +275,10 @@ INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) V
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 101, 1000, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 102, 1000, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (3, 103, 1000, 35.7, 'Red suitcase with a combination lock');
+
+-- Inserting data into the flight_staff table 
+INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
+INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
 -- Inserting data ends ++++++++++++++++++++++++++++++++++++++++++++++++
 
 -- Creating index to search passengers by last name
