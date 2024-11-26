@@ -855,8 +855,7 @@ END ticket_pricing_pkg;
 -- END;
 -- /
 
--- Flight staff package
-
+-- Flight staff package 
 -- Package Specification
 CREATE OR REPLACE PACKAGE flight_staff_pkg AS
     PROCEDURE add_employee_to_flight (
