@@ -690,9 +690,9 @@ CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
         pv_base_price OUT NUMBER
     );
 
-    FUNCTION check_additional_charge (
-        pv_luggage_weight IN NUMBER
-    ) RETURN NUMBER;
+    -- FUNCTION check_additional_charge (
+    --     pv_luggage_weight IN NUMBER
+    -- ) RETURN NUMBER;
 
     PROCEDURE calculate_total_price (
         pv_flight_id IN NUMBER,
@@ -797,7 +797,7 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
         get_base_ticket_price(pv_flight_id, pv_ticket_id, lv_base_price);
         DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || ROUND(lv_base_price, 2));
 
-        -- Calculate additional charge
+        -- Calculate additional charge using the function check_additional_charge (package local function)
         lv_additional_charge := check_additional_charge(pv_luggage_weight);
         DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || ROUND(lv_additional_charge, 2));
 
@@ -839,6 +839,7 @@ END ticket_pricing_pkg;
 -- /
 --
 --
+----THIS WILL GENERATE A COMPILE ERROR AS THE CALLED PACKAGE FUNCTION IS NOT ACCESSIBLE OUTSIDE THE PACKAGE
 -- -- Task 2: check_additional_charge (UNCOMMENT FOR TESTING ONLY)
 -- DECLARE
 --     lv_overcharge NUMBER;
