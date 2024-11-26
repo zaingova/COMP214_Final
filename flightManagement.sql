@@ -583,6 +583,7 @@ END;
 --     lv_overcharge := check_additional_charge(35);
 --     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
 -- END;
+--/
 
 --Task 3: Procedure or Function to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
 CREATE OR REPLACE PROCEDURE calculate_total_price (
@@ -836,8 +837,8 @@ END ticket_pricing_pkg;
 --     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
 -- END;
 -- /
-
-
+--
+--
 -- -- Task 2: check_additional_charge (UNCOMMENT FOR TESTING ONLY)
 -- DECLARE
 --     lv_overcharge NUMBER;
@@ -846,7 +847,7 @@ END ticket_pricing_pkg;
 --     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
 -- END;
 -- /
-
+--
 -- -- Task 3: calculate_total_price (UNCOMMENT FOR TESTING ONLY)
 -- DECLARE
 --     lv_total_price NUMBER;
@@ -855,7 +856,7 @@ END ticket_pricing_pkg;
 --     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
 -- END;
 -- /
-
+--
 -- -- Task 4: print_price_details (UNCOMMENT FOR TESTING ONLY)
 -- BEGIN
 --     ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
