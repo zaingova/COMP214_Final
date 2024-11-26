@@ -36,8 +36,6 @@ DROP PACKAGE ticket_pricing_pkg;
 -- Drop the package specification and body
 Drop PACKAGE BODY flight_staff_pkg;
 DROP PACKAGE flight_staff_pkg;
-DROP PROCEDURE flight_staff_pkg.add_employee_to_flight;
-DROP PROCEDURE flight_staff_pkg.remove_employee_from_flight;
 
 -- Table creation ++++++++++++++++++++++++++++++++++++++++++++++++++
 CREATE TABLE location (
@@ -160,7 +158,7 @@ CREATE TABLE luggage (
 -- Table creation ends ++++++++++++++++++++++++++++++++++++++++++++++
 
 -- Inserting data +++++++++++++++++++++++++++++++++++++++++++++++++++
--- Inserting data into the location table 1/10
+-- Inserting data into the location table 
 INSERT INTO LOCATION 
 VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
 INSERT INTO LOCATION 
@@ -182,14 +180,14 @@ VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
 INSERT INTO LOCATION 
 VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
 
--- Inserting data into the emp_type table 2/10
+-- Inserting data into the emp_type table 
 INSERT INTO emp_type VALUES (1, 'Airplane Cleaner');
 INSERT INTO emp_type VALUES (2, 'Flight Attendant');
 INSERT INTO emp_type VALUES (3, 'Mechanic');
 INSERT INTO emp_type VALUES (4, 'Baggage Handler');
 INSERT INTO emp_type VALUES (5, 'Aircraft Fueler');
 
--- Inserting data into the employee table 3/10
+-- Inserting data into the employee table 
 INSERT INTO employee VALUES (001,'John','Doe');
 INSERT INTO employee VALUES (002,'Jane','Smith');
 INSERT INTO employee VALUES (003,'Robert','Brown');
@@ -211,7 +209,7 @@ INSERT INTO employee VALUES (018, 'Frank', 'Moore');
 INSERT INTO employee VALUES (019, 'Grace', 'Taylor');
 INSERT INTO employee VALUES (020, 'Hannah', 'Anderson');
 
--- Inserting data into the pilot table 4/10
+-- Inserting data into the pilot table 
 INSERT INTO pilot VALUES (1, 001, 1001);
 INSERT INTO pilot VALUES (2, 002, 1002);
 INSERT INTO pilot VALUES (3, 003, 1003);
@@ -223,7 +221,7 @@ INSERT INTO pilot VALUES (8, 008, 1008);
 INSERT INTO pilot VALUES (9, 009, 1009);
 INSERT INTO pilot VALUES (10, 010, 1010);
 
--- Inserting data into the airplane table 5/10
+-- Inserting data into the airplane table 
 INSERT INTO airplane VALUES (9000,'AB9735','Air Bus 25','Air Hawk');
 INSERT INTO airplane VALUES (9010,'BN3749','Boeing32','Aerial Crusaders');
 INSERT INTO airplane VALUES (9020,'CF9949','Boeing747','West Jet');
@@ -235,21 +233,7 @@ INSERT INTO airplane VALUES (9070, 'GH0128', 'Airbus A350', 'Lufthansa');
 INSERT INTO airplane VALUES (9080, 'GH0129', 'Boeing 737', 'Southwest Airlines');
 INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
 
--- Inserting data into the flight_staff table 6/10
-INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
-INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
-
--- Inserting data into the ticket table 7/10
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (1, 1, 'ECONOMY', 1);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (2, 2, 'BUSINESS', 2);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (3, 3, 'ECONOMY', 3);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (4, 4, 'BUSINESS', 4);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (5, 5, 'ECONOMY', 5);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (101, 1000, 'Economy', 900);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (102, 1000, 'Economy', 901);
-INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (103, 1000, 'Business', 902);
-
--- Inserting data into the flight table 8/10
+-- Inserting data into the flight table 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
 VALUES (1, 9010, 1, 'SIN', 'JFK', TO_DATE('2023-11-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-01 20:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
@@ -265,14 +249,28 @@ VALUES (4, 9040, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH2
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
 VALUES (5, 9050, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
--- Inserting data into the passenger table 9/10
+-- Inserting data into the ticket table 
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (1, 1, 'ECONOMY', 1);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (2, 2, 'BUSINESS', 2);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (3, 3, 'ECONOMY', 3);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (4, 4, 'BUSINESS', 4);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (5, 5, 'ECONOMY', 5);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (101, 1000, 'Economy', 900);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (102, 1000, 'Economy', 901);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (103, 1000, 'Business', 902);
+
+-- Inserting data into the flight_staff table 
+INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
+INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
+
+-- Inserting data into the passenger table 
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (2, 'Jerry', 'Seinfeld', 'jerry@example.com', '0987654321', '456 Elm St', 'NON_MEMBER');
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (3, 'Bruce', 'Wayne', 'bruce@example.com', '1112223333', '789 Oak St', 'MEMBER');
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (4, 'Clark', 'Kent', 'clark@example.com', '4445556666', '101 Pine St', 'NON_MEMBER');
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (5, 'Diana', 'Prince', 'diana@example.com', '7778889999', '202 Maple St', 'MEMBER');
 
--- Inserting data into the luggage table 10/10
+-- Inserting data into the luggage table 
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 1, 1, 30, 'Checked baggage');
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 2, 2, 35, 'Checked baggage');
 INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (3, 3, 3, 28, 'Carry-on baggage');
