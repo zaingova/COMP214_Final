@@ -961,6 +961,7 @@ CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
     END remove_employee_from_flight;
 
+END flight_staff_pkg;
 /
 --Testing code:
 BEGIN
