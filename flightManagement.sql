@@ -33,9 +33,12 @@ DROP PROCEDURE print_price_details;
 DROP PACKAGE BODY ticket_pricing_pkg;
 DROP PACKAGE ticket_pricing_pkg;
 
--- Drop the package specification and body
-Drop PACKAGE BODY flight_staff_pkg;
+-- Drop the flight staff package specification and body
+DROP PACKAGE BODY flight_staff_pkg;
 DROP PACKAGE flight_staff_pkg;
+DROP SEQUENCE flight_staff_seq;
+
+
 
 -- Table creation ++++++++++++++++++++++++++++++++++++++++++++++++++
 CREATE TABLE location (
@@ -864,60 +867,74 @@ END ticket_pricing_pkg;
 -- /
 
 -- Flight staff package 
--- Package Specification
 CREATE OR REPLACE PACKAGE flight_staff_pkg AS
+    -- Global variable to store the total number of employees assigned to flights
+    total_employees NUMBER := 0;
+
+    -- TYPE declaration for a record representing a flight staff member
+    TYPE flight_staff_rec IS RECORD (
+        staff_id    flight_staff.staff_id%TYPE,
+        employee#   flight_staff.employee#%TYPE,
+        flight_id   flight_staff.flight_id%TYPE,
+        designation flight_staff.designation%TYPE
+    );
+
+    -- Procedure to add an employee to a flight
     PROCEDURE add_employee_to_flight (
-        p_employee_id IN NUMBER, 
-        p_flight_id IN NUMBER, 
+        p_employee_id IN NUMBER,
+        p_flight_id IN NUMBER,
         p_designation IN NUMBER
     );
 
+    -- Procedure to remove an employee from a flight
     PROCEDURE remove_employee_from_flight (
-        p_employee_id IN NUMBER, 
+        p_employee_id IN NUMBER,
         p_flight_id IN NUMBER
     );
+
+    -- Function to count total employees assigned to flights
+    FUNCTION get_total_employees RETURN NUMBER;
+
+    -- Function to get details of a specific flight staff member
+    FUNCTION get_flight_staff_details (
+        p_staff_id IN NUMBER
+    ) RETURN flight_staff_rec;
 END flight_staff_pkg;
 /
--- Package Body Specification
+
+--Package Body
 CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
 
+    -- Private variable to track the maximum staff ID
+    v_max_staff_id NUMBER;
+
+    -- Procedure to add an employee to a flight
     PROCEDURE add_employee_to_flight (
-        p_employee_id IN NUMBER, 
-        p_flight_id IN NUMBER, 
+        p_employee_id IN NUMBER,
+        p_flight_id IN NUMBER,
         p_designation IN NUMBER
     ) IS
-        v_staff_id NUMBER;
     BEGIN
-        -- Check if the employee is already assigned to the flight
-        SELECT COUNT(*)
-        INTO v_staff_id
-        FROM flight_staff
-        WHERE employee# = p_employee_id;
+        -- Find the maximum staff_id from the flight_staff table and add 1
+        SELECT NVL(MAX(staff_id), 0) + 1 INTO v_max_staff_id FROM flight_staff;
 
-        IF v_staff_id = 0 THEN
-            -- Find the maximum staff_id from the flight_staff table and add 1 to generate the new staff_id
-            SELECT NVL(MAX(staff_id), 0) + 1
-            INTO v_staff_id
-            FROM flight_staff;
+        -- Insert the new employee into the flight_staff table
+        INSERT INTO flight_staff (staff_id, employee#, flight_id, designation)
+        VALUES (v_max_staff_id, p_employee_id, p_flight_id, p_designation);
 
-            -- Insert the new employee into the flight_staff table
-            INSERT INTO flight_staff (staff_id, employee#, flight_id, designation)
-            VALUES (v_staff_id, p_employee_id, p_flight_id, p_designation);
+        -- Update global variable
+        total_employees := total_employees + 1;
 
-            COMMIT;
-            DBMS_OUTPUT.PUT_LINE('Employee added successfully to the flight staff.');
-        ELSE
-            DBMS_OUTPUT.PUT_LINE('Error: Employee is already assigned to a flight.');
-        END IF;
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Employee added successfully to the flight staff.');
     EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('Error: No employee found with the given ID.');
         WHEN OTHERS THEN
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
     END add_employee_to_flight;
 
+    -- Procedure to remove an employee from a flight
     PROCEDURE remove_employee_from_flight (
-        p_employee_id IN NUMBER, 
+        p_employee_id IN NUMBER,
         p_flight_id IN NUMBER
     ) IS
     BEGIN
@@ -926,26 +943,59 @@ CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
         WHERE employee# = p_employee_id
         AND flight_id = p_flight_id;
 
+        -- Update global variable
+        total_employees := total_employees - 1;
+
         COMMIT;
         DBMS_OUTPUT.PUT_LINE('Employee removed successfully from the flight staff.');
     EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('Error: No employee found for the given flight.');
         WHEN OTHERS THEN
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
     END remove_employee_from_flight;
 
+    -- Function to count total employees assigned to flights
+    FUNCTION get_total_employees RETURN NUMBER IS
+    BEGIN
+        RETURN total_employees;
+    END get_total_employees;
+
+    -- Function to get details of a specific flight staff member
+    FUNCTION get_flight_staff_details (
+        p_staff_id IN NUMBER
+    ) RETURN flight_staff_rec IS
+        v_flight_staff flight_staff_rec;
+    BEGIN
+        -- Fetch the flight staff details using ROWTYPE attribute
+        SELECT staff_id, employee#, flight_id, designation
+        INTO v_flight_staff
+        FROM flight_staff
+        WHERE staff_id = p_staff_id;
+
+        RETURN v_flight_staff;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No flight staff found with the given staff ID.');
+            RAISE;
+    END get_flight_staff_details;
+
 END flight_staff_pkg;
 /
---Testing code:
+--Testing code
 BEGIN
-    -- Testing add_employee
-    flight_staff_pkg.add_employee_to_flight(p_employee_id => 1, p_flight_id => 2, p_designation => 2);
+    -- Test adding an employee
+    flight_staff_pkg.add_employee_to_flight(p_employee_id => 101, p_flight_id => 202, p_designation => 2);
 END;
 /
 
 BEGIN
-    -- Testing remove_employee
-    flight_staff_pkg.remove_employee_from_flight(p_employee_id => 1, p_flight_id => 2);
+    -- Test removing an employee
+    flight_staff_pkg.remove_employee_from_flight(p_employee_id => 101, p_flight_id => 202);
 END;
 /
+
+BEGIN
+    -- Test getting total employees
+    DBMS_OUTPUT.PUT_LINE('Total Employees: ' || flight_staff_pkg.get_total_employees);
+END;
+/
+
