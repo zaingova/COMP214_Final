@@ -30,10 +30,11 @@ DROP PROCEDURE get_base_ticket_price;
 DROP FUNCTION check_additional_charge;
 DROP PROCEDURE calculate_total_price;
 DROP PROCEDURE print_price_details;
-DROP PACKAGE ticket_pricing_pkg;
 DROP PACKAGE BODY ticket_pricing_pkg;
+DROP PACKAGE ticket_pricing_pkg;
 
 -- Drop the package specification and body
+Drop PACKAGE BODY flight_staff_pkg;
 DROP PACKAGE flight_staff_pkg;
 DROP PROCEDURE flight_staff_pkg.add_employee_to_flight;
 DROP PROCEDURE flight_staff_pkg.remove_employee_from_flight;
