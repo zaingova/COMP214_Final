@@ -877,7 +877,7 @@ CREATE OR REPLACE PACKAGE flight_staff_pkg AS
     );
 END flight_staff_pkg;
 /
--- Body Specification
+-- Package Body Specification
 CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
 
     PROCEDURE add_employee_to_flight (
@@ -887,17 +887,27 @@ CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
     ) IS
         v_staff_id NUMBER;
     BEGIN
-        -- Find the maximum staff_id from the flight_staff table and add 1 to generate the new staff_id
-        SELECT NVL(MAX(staff_id), 0) + 1
+        -- Check if the employee is already assigned to the flight
+        SELECT COUNT(*)
         INTO v_staff_id
-        FROM flight_staff;
+        FROM flight_staff
+        WHERE employee# = p_employee_id;
 
-        -- Insert the new employee into the flight_staff table
-        INSERT INTO flight_staff (staff_id, employee#, flight_id, designation)
-        VALUES (v_staff_id, p_employee_id, p_flight_id, p_designation);
+        IF v_staff_id = 0 THEN
+            -- Find the maximum staff_id from the flight_staff table and add 1 to generate the new staff_id
+            SELECT NVL(MAX(staff_id), 0) + 1
+            INTO v_staff_id
+            FROM flight_staff;
 
-        COMMIT;
-        DBMS_OUTPUT.PUT_LINE('Employee added successfully to the flight staff.');
+            -- Insert the new employee into the flight_staff table
+            INSERT INTO flight_staff (staff_id, employee#, flight_id, designation)
+            VALUES (v_staff_id, p_employee_id, p_flight_id, p_designation);
+
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Employee added successfully to the flight staff.');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Error: Employee is already assigned to a flight.');
+        END IF;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('Error: No employee found with the given ID.');
