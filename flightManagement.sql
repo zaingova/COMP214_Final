@@ -526,22 +526,22 @@ VALUES ('YYZ', 'Toronto Pearson International Airport', -5, 43.6777, -79.6248);
 
 --Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
 CREATE OR REPLACE PROCEDURE get_base_ticket_price (
-    p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
     p_base_price OUT NUMBER
 ) AS
+    lv_flight_id NUMBER;
     lv_flight_type VARCHAR2(20);
     lv_seating_class VARCHAR2(20);
 BEGIN
+    -- Get flight ID and seating class from ticket table
+    SELECT flight_id, UPPER(seating_class) INTO lv_flight_id, lv_seating_class
+    FROM ticket
+    WHERE ticket_id = p_ticket_id;
+
     -- Get flight type
     SELECT UPPER(flight_type) INTO lv_flight_type
     FROM flight
-    WHERE flight_id = p_flight_id;
-
-    -- Get seating class from ticket table
-    SELECT UPPER(seating_class) INTO lv_seating_class
-    FROM ticket
-    WHERE ticket_id = p_ticket_id;
+    WHERE flight_id = lv_flight_id;
 
     -- Determine base price based on seating class and flight type
     IF lv_seating_class = 'ECONOMY' THEN
@@ -560,14 +560,14 @@ BEGIN
 END;
 /
 
--- -- Test (UNCOMMENT FOR TESTING ONLY) Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
-DECLARE
-     lv_base_price NUMBER;
- BEGIN
-     get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
-     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
- END;
-/
+---- Test (UNCOMMENT FOR TESTING ONLY) Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
+--DECLARE
+--    lv_base_price NUMBER;
+--BEGIN
+--    get_base_ticket_price(1, lv_base_price); -- Assuming ticket_id = 1
+--    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+--END;
+--/
 
 --Task 2: Function to Check Additional Charge Based on the Luggage Weight
 CREATE OR REPLACE FUNCTION check_additional_charge (
@@ -592,26 +592,29 @@ END;
 
 --Task 3: Procedure or Function to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
 CREATE OR REPLACE PROCEDURE calculate_total_price (
-    p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
-    p_luggage_weight IN NUMBER,
-    p_passenger_id IN NUMBER,
     p_total_price OUT NUMBER
 ) AS
     lv_base_price NUMBER;
     lv_additional_charge NUMBER;
     lv_membership VARCHAR2(20);
+    lv_luggage_weight NUMBER;
+    lv_flight_id NUMBER;
 BEGIN
+    -- Get luggage weight, flight ID, and membership status
+    SELECT l.weight, t.flight_id, UPPER(p.airbus_membership)
+    INTO lv_luggage_weight, lv_flight_id, lv_membership
+    FROM ticket t
+    JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
+    JOIN passenger p ON t.passenger_id = p.passenger_id
+    WHERE t.ticket_id = p_ticket_id
+    AND ROWNUM = 1; -- Ensure only one row is fetched
+
     -- Get base ticket price
-    get_base_ticket_price(p_flight_id, p_ticket_id, lv_base_price);
+    get_base_ticket_price(p_ticket_id, lv_base_price);
 
     -- Calculate additional charge
-    lv_additional_charge := check_additional_charge(p_luggage_weight);
-
-    -- Get membership status
-    SELECT UPPER(airbus_membership) INTO lv_membership
-    FROM passenger
-    WHERE passenger_id = p_passenger_id;
+    lv_additional_charge := check_additional_charge(lv_luggage_weight);
 
     -- Calculate total price
     p_total_price := lv_base_price + lv_additional_charge;
@@ -624,20 +627,24 @@ END;
 /
 
 -- -- Test (UNCOMMENT FOR TESTING ONLY) Task 3: Procedure to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
--- DECLARE
---     lv_total_price NUMBER;
--- BEGIN
---     calculate_total_price(1, 1, 35, 1, lv_total_price); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
---     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
--- END;
--- /
+DECLARE
+    v_ticket_id NUMBER := 1; -- Replace with a valid ticket ID
+    v_total_price NUMBER;
+BEGIN
+    -- Call the procedure
+    calculate_total_price(
+        p_ticket_id => v_ticket_id,
+        p_total_price => v_total_price
+    );
+
+    -- Output the result
+    DBMS_OUTPUT.PUT_LINE('Total Price: ' || v_total_price);
+END;
+/
 
 --Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
 CREATE OR REPLACE PROCEDURE print_price_details (
-    p_flight_id IN NUMBER,
-    p_ticket_id IN NUMBER,
-    p_luggage_weight IN NUMBER,
-    p_passenger_id IN NUMBER
+    p_ticket_id IN NUMBER
 ) AS
     lv_base_price NUMBER;
     lv_additional_charge NUMBER;
@@ -645,28 +652,35 @@ CREATE OR REPLACE PROCEDURE print_price_details (
     lv_membership VARCHAR2(20);
     lv_discount NUMBER := 0;
     lv_exceeding_weight NUMBER;
+    lv_luggage_weight NUMBER;
+    lv_flight_id NUMBER;
+    lv_passenger_id NUMBER;
 BEGIN
+    -- Get luggage weight, flight ID, and membership status
+    SELECT l.weight, t.flight_id, t.passenger_id, UPPER(p.airbus_membership)
+    INTO lv_luggage_weight, lv_flight_id, lv_passenger_id, lv_membership
+    FROM ticket t
+    JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
+    JOIN passenger p ON t.passenger_id = p.passenger_id
+    WHERE t.ticket_id = p_ticket_id
+    AND ROWNUM = 1; -- Ensure only one row is fetched
+
     -- Get base ticket price
-    get_base_ticket_price(p_flight_id, p_ticket_id, lv_base_price);
+    get_base_ticket_price(p_ticket_id, lv_base_price);
     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || ROUND(lv_base_price, 2));
 
     -- Calculate additional charge
-    lv_additional_charge := check_additional_charge(p_luggage_weight);
+    lv_additional_charge := check_additional_charge(lv_luggage_weight);
     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || ROUND(lv_additional_charge, 2));
 
     -- Show reason for additional charge
     IF lv_additional_charge > 0 THEN
-        lv_exceeding_weight := p_luggage_weight - 32;
+        lv_exceeding_weight := lv_luggage_weight - 32;
         DBMS_OUTPUT.PUT_LINE('Reason for Additional Charge: Luggage weight exceeds 32kg by ' || lv_exceeding_weight || 'kg. Additional $3 per kg charged.');
     END IF;
 
-    -- Get membership status
-    SELECT UPPER(airbus_membership) INTO lv_membership
-    FROM passenger
-    WHERE passenger_id = p_passenger_id;
-
     -- Calculate total price
-    calculate_total_price(p_flight_id, p_ticket_id, p_luggage_weight, p_passenger_id, lv_total_price);
+    calculate_total_price(p_ticket_id, lv_total_price);
 
     -- Apply discount if member
     IF lv_membership = 'MEMBER' THEN
@@ -681,10 +695,13 @@ END;
 /
 
 -- -- Test (UNCOMMENT FOR TESTING ONLY) Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
--- BEGIN
---     print_price_details(1, 1, 35, 1);
--- END;
--- /
+--DECLARE
+--    v_ticket_id NUMBER := 1; -- Replace with a valid ticket ID
+--BEGIN
+--    -- Call the procedure
+--    print_price_details(p_ticket_id => v_ticket_id);
+--END;
+--/
 
 --Task 5: a package to combine all 4 tasks
 --creating the package specification
@@ -694,10 +711,6 @@ CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
         pv_seating_class IN VARCHAR2,
         pv_base_price OUT NUMBER
     );
-
-    -- FUNCTION check_additional_charge (
-    --     pv_luggage_weight IN NUMBER
-    -- ) RETURN NUMBER;
 
     PROCEDURE calculate_total_price (
         pv_flight_id IN NUMBER,
@@ -715,81 +728,106 @@ CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
     );
 END ticket_pricing_pkg;
 /
+--creating the package specification
+CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
+    PROCEDURE get_base_ticket_price (
+        p_ticket_id IN NUMBER,
+        p_base_price OUT NUMBER
+    );
+
+    PROCEDURE calculate_total_price (
+        p_ticket_id IN NUMBER,
+        p_total_price OUT NUMBER
+    );
+
+    PROCEDURE print_price_details (
+        p_ticket_id IN NUMBER
+    );
+END ticket_pricing_pkg;
+/
 --creating the package body
 CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
-        pv_flight_id IN NUMBER,
-        pv_seating_class IN VARCHAR2,
-        pv_base_price OUT NUMBER
+        p_ticket_id IN NUMBER,
+        p_base_price OUT NUMBER
     ) AS
+        lv_flight_id NUMBER;
         lv_flight_type VARCHAR2(20);
+        lv_seating_class VARCHAR2(20);
     BEGIN
+        -- Get flight ID and seating class from ticket table
+        SELECT flight_id, UPPER(seating_class) INTO lv_flight_id, lv_seating_class
+        FROM ticket
+        WHERE ticket_id = p_ticket_id;
+
+        -- Get flight type
         SELECT UPPER(flight_type) INTO lv_flight_type
         FROM flight
-        WHERE flight_id = pv_flight_id;
+        WHERE flight_id = lv_flight_id;
 
-        IF UPPER(pv_seating_class) = 'ECONOMY' THEN
+        -- Determine base price based on seating class and flight type
+        IF lv_seating_class = 'ECONOMY' THEN
             IF lv_flight_type = 'DOMESTIC' THEN
-                pv_base_price := 400;
+                p_base_price := 400;
             ELSIF lv_flight_type = 'INTERNATIONAL' THEN
-                pv_base_price := 1200;
+                p_base_price := 1200;
             END IF;
-        ELSIF UPPER(pv_seating_class) = 'BUSINESS' THEN
+        ELSIF lv_seating_class = 'BUSINESS' THEN
             IF lv_flight_type = 'DOMESTIC' THEN
-                pv_base_price := 1300;
+                p_base_price := 1300;
             ELSIF lv_flight_type = 'INTERNATIONAL' THEN
-                pv_base_price := 6900;
+                p_base_price := 6900;
             END IF;
         END IF;
     END get_base_ticket_price;
 
     FUNCTION check_additional_charge (
-        pv_luggage_weight IN NUMBER
+        p_luggage_weight IN NUMBER
     ) RETURN NUMBER AS
         lv_overcharge NUMBER := 0;
     BEGIN
-        IF pv_luggage_weight > 32 THEN
-            lv_overcharge := (pv_luggage_weight - 32) * 3;
+        IF p_luggage_weight > 32 THEN
+            lv_overcharge := (p_luggage_weight - 32) * 3;
         END IF;
         RETURN lv_overcharge;
     END check_additional_charge;
 
     PROCEDURE calculate_total_price (
-        pv_flight_id IN NUMBER,
-        pv_seating_class IN VARCHAR2,
-        pv_luggage_weight IN NUMBER,
-        pv_passenger_id IN NUMBER,
-        pv_total_price OUT NUMBER
+        p_ticket_id IN NUMBER,
+        p_total_price OUT NUMBER
     ) AS
         lv_base_price NUMBER;
         lv_additional_charge NUMBER;
         lv_membership VARCHAR2(20);
+        lv_luggage_weight NUMBER;
+        lv_flight_id NUMBER;
     BEGIN
+        -- Get luggage weight, flight ID, and membership status
+        SELECT l.weight, t.flight_id, UPPER(p.airbus_membership)
+        INTO lv_luggage_weight, lv_flight_id, lv_membership
+        FROM ticket t
+        JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
+        JOIN passenger p ON t.passenger_id = p.passenger_id
+        WHERE t.ticket_id = p_ticket_id
+        AND ROWNUM = 1; -- Ensure only one row is fetched
+
         -- Get base ticket price
-        get_base_ticket_price(pv_flight_id, UPPER(pv_seating_class), lv_base_price);
+        get_base_ticket_price(p_ticket_id, lv_base_price);
 
         -- Calculate additional charge
-        lv_additional_charge := check_additional_charge(pv_luggage_weight);
-
-        -- Get membership status
-        SELECT UPPER(airbus_membership) INTO lv_membership
-        FROM passenger
-        WHERE passenger_id = pv_passenger_id;
+        lv_additional_charge := check_additional_charge(lv_luggage_weight);
 
         -- Calculate total price
-        pv_total_price := lv_base_price + lv_additional_charge;
+        p_total_price := lv_base_price + lv_additional_charge;
 
         -- Apply discount if member
         IF lv_membership = 'MEMBER' THEN
-            pv_total_price := pv_total_price * 0.95;
+            p_total_price := p_total_price * 0.95;
         END IF;
     END calculate_total_price;
 
     PROCEDURE print_price_details (
-        pv_flight_id IN NUMBER,
-        pv_ticket_id IN NUMBER,
-        pv_luggage_weight IN NUMBER,
-        pv_passenger_id IN NUMBER
+        p_ticket_id IN NUMBER
     ) AS
         lv_base_price NUMBER;
         lv_additional_charge NUMBER;
@@ -797,28 +835,35 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
         lv_membership VARCHAR2(20);
         lv_discount NUMBER := 0;
         lv_exceeding_weight NUMBER;
+        lv_luggage_weight NUMBER;
+        lv_flight_id NUMBER;
+        lv_passenger_id NUMBER;
     BEGIN
+        -- Get luggage weight, flight ID, and membership status
+        SELECT l.weight, t.flight_id, t.passenger_id, UPPER(p.airbus_membership)
+        INTO lv_luggage_weight, lv_flight_id, lv_passenger_id, lv_membership
+        FROM ticket t
+        JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
+        JOIN passenger p ON t.passenger_id = p.passenger_id
+        WHERE t.ticket_id = p_ticket_id
+        AND ROWNUM = 1; -- Ensure only one row is fetched
+
         -- Get base ticket price
-        get_base_ticket_price(pv_flight_id, pv_ticket_id, lv_base_price);
+        get_base_ticket_price(p_ticket_id, lv_base_price);
         DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || ROUND(lv_base_price, 2));
 
-        -- Calculate additional charge using the function check_additional_charge (package local function)
-        lv_additional_charge := check_additional_charge(pv_luggage_weight);
+        -- Calculate additional charge
+        lv_additional_charge := check_additional_charge(lv_luggage_weight);
         DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || ROUND(lv_additional_charge, 2));
 
         -- Show reason for additional charge
         IF lv_additional_charge > 0 THEN
-            lv_exceeding_weight := pv_luggage_weight - 32;
+            lv_exceeding_weight := lv_luggage_weight - 32;
             DBMS_OUTPUT.PUT_LINE('Reason for Additional Charge: Luggage weight exceeds 32kg by ' || lv_exceeding_weight || 'kg. Additional $3 per kg charged.');
         END IF;
 
-        -- Get membership status
-        SELECT UPPER(airbus_membership) INTO lv_membership
-        FROM passenger
-        WHERE passenger_id = pv_passenger_id;
-
         -- Calculate total price
-        calculate_total_price(pv_flight_id, pv_ticket_id, pv_luggage_weight, pv_passenger_id, lv_total_price);
+        calculate_total_price(p_ticket_id, lv_total_price);
 
         -- Apply discount if member
         IF lv_membership = 'MEMBER' THEN
@@ -834,40 +879,30 @@ END ticket_pricing_pkg;
 /
 
 -- --Testing the package (UNCOMMENT FOR TESTING ONLY)
--- -- Task 1: get_base_ticket_price (UNCOMMENT FOR TESTING ONLY)
--- DECLARE
---     lv_base_price NUMBER;
--- BEGIN
---     ticket_pricing_pkg.get_base_ticket_price(1, UPPER('economy'), lv_base_price);
---     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
--- END;
--- /
---
---
-----THIS WILL GENERATE A COMPILE ERROR AS THE CALLED PACKAGE FUNCTION IS NOT ACCESSIBLE OUTSIDE THE PACKAGE
--- -- Task 2: check_additional_charge (UNCOMMENT FOR TESTING ONLY)
--- DECLARE
---     lv_overcharge NUMBER;
--- BEGIN
---     lv_overcharge := ticket_pricing_pkg.check_additional_charge(35);
---     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
--- END;
--- /
---
--- -- Task 3: calculate_total_price (UNCOMMENT FOR TESTING ONLY)
--- DECLARE
---     lv_total_price NUMBER;
--- BEGIN
---     ticket_pricing_pkg.calculate_total_price(1, UPPER('economy'), 35, 1, lv_total_price);
---     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
--- END;
--- /
---
--- -- Task 4: print_price_details (UNCOMMENT FOR TESTING ONLY)
--- BEGIN
---     ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
--- END;
--- /
+--get_base_ticket_price (UNCOMMENT FOR TESTING ONLY)
+DECLARE
+    lv_base_price NUMBER;
+BEGIN
+    ticket_pricing_pkg.get_base_ticket_price(1, lv_base_price); -- Assuming ticket_id = 1
+    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+END;
+/
+
+
+-- calculate_total_price (UNCOMMENT FOR TESTING ONLY)
+DECLARE
+    lv_total_price NUMBER;
+BEGIN
+    ticket_pricing_pkg.calculate_total_price(1, lv_total_price); -- Assuming ticket_id = 1
+    DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
+END;
+/
+
+-- print_price_details (UNCOMMENT FOR TESTING ONLY)
+BEGIN
+    ticket_pricing_pkg.print_price_details(1); -- Assuming ticket_id = 1
+END;
+/
 
 -- Flight staff package 
 CREATE OR REPLACE PACKAGE flight_staff_pkg AS
