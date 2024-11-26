@@ -1,5 +1,4 @@
 -- Dropping tables if they exist
-
 DROP TABLE pilot CASCADE CONSTRAINTS;
 DROP TABLE flight CASCADE CONSTRAINTS;
 DROP TABLE airplane CASCADE CONSTRAINTS;
@@ -10,18 +9,23 @@ DROP TABLE passenger CASCADE CONSTRAINTS;
 DROP TABLE emp_type CASCADE CONSTRAINTS;
 DROP TABLE location CASCADE CONSTRAINTS;
 DROP TABLE luggage CASCADE CONSTRAINTS;
+-- Dropping sequence if they exist
 DROP SEQUENCE passenger_seq;
 DROP SEQUENCE flight_seq;
 DROP SEQUENCE pilot_seq;
 DROP SEQUENCE airplane_seq;
-DROP FUNCTION get_flight_time;
+-- Dropping index if they exist
 DROP INDEX idx_passenger_email;
 DROP INDEX idx_employee_last_name;
 DROP INDEX idx_flight_staff_flight_id;
+-- Dropping trigger if they exist
 DROP TRIGGER trg_employee_full_name;
 DROP TRIGGER trg_new_location;
+
+DROP FUNCTION get_flight_time;
 DROP PROCEDURE insert_flight_data;
 
+-- Drop the package specification and body with its associated procedures and functions
 DROP PROCEDURE get_base_ticket_price;
 DROP FUNCTION check_additional_charge;
 DROP PROCEDURE calculate_total_price;
@@ -34,7 +38,7 @@ DROP PACKAGE flight_staff_pkg;
 DROP PROCEDURE flight_staff_pkg.add_employee_to_flight;
 DROP PROCEDURE flight_staff_pkg.remove_employee_from_flight;
 
--- Table creation
+-- Table creation ++++++++++++++++++++++++++++++++++++++++++++++++++
 CREATE TABLE location (
     locationCode CHAR(3),
     locationDesc VARCHAR(50),
@@ -82,12 +86,12 @@ CREATE TABLE airplane (
 CREATE TABLE flight (
     flight_id      NUMBER(10),
     airplane_id    NUMBER(10),
-    flight_type VARCHAR2(20),
     pilot_id       NUMBER(10),
     origin         CHAR(3),
     destination    CHAR(3),
     departure_date TIMESTAMP(1),
     arrival_date   TIMESTAMP(1),
+    flight_type VARCHAR2(20),
     CONSTRAINT flight_flight_id_pk PRIMARY KEY ( flight_id ),
     CONSTRAINT flight_airplane_id_fk FOREIGN KEY ( airplane_id )
         REFERENCES airplane ( airplane_id ),
@@ -130,7 +134,6 @@ CREATE TABLE flight_staff (
         CHECK (designation BETWEEN 2 AND 5)
 );
 
-
 CREATE TABLE ticket (
     passenger_id  NUMBER(10),
     flight_id     NUMBER(10),
@@ -153,10 +156,230 @@ CREATE TABLE luggage (
     CONSTRAINT luggage_passenger_id_fk FOREIGN KEY (passenger_id, flight_id)
         REFERENCES ticket (passenger_id, flight_id)
 );
+-- Table creation ends ++++++++++++++++++++++++++++++++++++++++++++++
 
+-- Inserting data +++++++++++++++++++++++++++++++++++++++++++++++++++
+-- Inserting data into the location table 1/10
+INSERT INTO LOCATION 
+VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
+INSERT INTO LOCATION 
+VALUES ('JFK', 'John F. Kennedy International Airport', -5, 40.6413, -73.7781);
+INSERT INTO LOCATION 
+VALUES ('LHR', 'London Heathrow Airport', 0, 51.5074, -0.1278);
+INSERT INTO LOCATION 
+VALUES ('ORD', 'O''Hare International Airport', -6, 41.9744, -87.9071);
+INSERT INTO LOCATION 
+VALUES ('CDG', 'Charles de Gaulle Airport', 1, 49.0097, 2.5479);
+INSERT INTO LOCATION 
+VALUES ('SYD', 'Sydney Kingsford Smith Airport', 10, -33.8688, 151.2093);
+INSERT INTO LOCATION 
+VALUES ('HKG', 'Hong Kong International Airport', 8, 22.3080, 113.9141);
+INSERT INTO LOCATION 
+VALUES ('BKK', 'Suvarnabhumi Airport', 7, 13.6897, 100.7501);
+INSERT INTO LOCATION 
+VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
+INSERT INTO LOCATION 
+VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
+
+-- Inserting data into the emp_type table 2/10
+INSERT INTO emp_type VALUES (1, 'Airplane Cleaner');
+INSERT INTO emp_type VALUES (2, 'Flight Attendant');
+INSERT INTO emp_type VALUES (3, 'Mechanic');
+INSERT INTO emp_type VALUES (4, 'Baggage Handler');
+INSERT INTO emp_type VALUES (5, 'Aircraft Fueler');
+
+-- Inserting data into the employee table 3/10
+INSERT INTO employee VALUES (001,'John','Doe');
+INSERT INTO employee VALUES (002,'Jane','Smith');
+INSERT INTO employee VALUES (003,'Robert','Brown');
+INSERT INTO employee VALUES (004,'Emily','Johnson');
+INSERT INTO employee VALUES (005,'Paul','Delores');
+INSERT INTO employee VALUES (006,'Channing','Bosum');
+INSERT INTO employee VALUES (007,'Shaun','Jacobson');
+INSERT INTO employee VALUES (008,'Lauren','Moser');
+INSERT INTO employee VALUES (009,'Tina','Shaw');
+INSERT INTO employee VALUES (010,'Pradeep','Singh');
+INSERT INTO employee VALUES (011,'Farukh','Khan');
+INSERT INTO employee VALUES (012,'Lin','Miyazaki');
+INSERT INTO employee VALUES (013, 'Alice', 'Johnson');
+INSERT INTO employee VALUES (014, 'Bob', 'Smith');
+INSERT INTO employee VALUES (015, 'Charlie', 'Brown');
+INSERT INTO employee VALUES (016, 'David', 'Wilson');
+INSERT INTO employee VALUES (017, 'Eve', 'Davis');
+INSERT INTO employee VALUES (018, 'Frank', 'Moore');
+INSERT INTO employee VALUES (019, 'Grace', 'Taylor');
+INSERT INTO employee VALUES (020, 'Hannah', 'Anderson');
+
+-- Inserting data into the pilot table 4/10
+INSERT INTO pilot VALUES (1, 001, 1001);
+INSERT INTO pilot VALUES (2, 002, 1002);
+INSERT INTO pilot VALUES (3, 003, 1003);
+INSERT INTO pilot VALUES (4, 004, 1004);
+INSERT INTO pilot VALUES (5, 005, 1005);
+INSERT INTO pilot VALUES (6, 006, 1006);
+INSERT INTO pilot VALUES (7, 007, 1007);
+INSERT INTO pilot VALUES (8, 008, 1008);
+INSERT INTO pilot VALUES (9, 009, 1009);
+INSERT INTO pilot VALUES (10, 010, 1010);
+
+-- Inserting data into the airplane table 5/10
+INSERT INTO airplane VALUES (9000,'AB9735','Air Bus 25','Air Hawk');
+INSERT INTO airplane VALUES (9010,'BN3749','Boeing32','Aerial Crusaders');
+INSERT INTO airplane VALUES (9020,'CF9949','Boeing747','West Jet');
+INSERT INTO airplane VALUES (9030,'GH0124','Boeing747','Sun Wing');
+INSERT INTO airplane VALUES (9040, 'GH0125', 'Airbus A320', 'Delta Airlines');
+INSERT INTO airplane VALUES (9050, 'GH0126', 'Boeing 777', 'American Airlines');
+INSERT INTO airplane VALUES (9060, 'GH0127', 'Boeing 787', 'United Airlines');
+INSERT INTO airplane VALUES (9070, 'GH0128', 'Airbus A350', 'Lufthansa');
+INSERT INTO airplane VALUES (9080, 'GH0129', 'Boeing 737', 'Southwest Airlines');
+INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
+
+-- Inserting data into the flight_staff table 6/10
+INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
+INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
+
+-- Inserting data into the ticket table 7/10
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (1, 1, 'ECONOMY', 1);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (2, 2, 'BUSINESS', 2);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (3, 3, 'ECONOMY', 3);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (4, 4, 'BUSINESS', 4);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (5, 5, 'ECONOMY', 5);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (101, 1000, 'Economy', 900);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (102, 1000, 'Economy', 901);
+INSERT INTO ticket (passenger_id, flight_id, seating_class, ticket_id) VALUES (103, 1000, 'Business', 902);
+
+-- Inserting data into the flight table 8/10
+INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
+VALUES (1, 9010, 1, 'SIN', 'JFK', TO_DATE('2023-11-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-01 20:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+
+INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
+VALUES (2, 9020, 2, 'JFK', 'LAX', TO_DATE('2023-11-02 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-02 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'DOMESTIC');
+
+INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
+VALUES (3, 9030, 3, 'LAX', 'HND', TO_DATE('2023-11-03 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+
+INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
+VALUES (4, 9040, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 23:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+
+INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
+VALUES (5, 9050, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+
+-- Inserting data into the passenger table 9/10
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (2, 'Jerry', 'Seinfeld', 'jerry@example.com', '0987654321', '456 Elm St', 'NON_MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (3, 'Bruce', 'Wayne', 'bruce@example.com', '1112223333', '789 Oak St', 'MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (4, 'Clark', 'Kent', 'clark@example.com', '4445556666', '101 Pine St', 'NON_MEMBER');
+INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (5, 'Diana', 'Prince', 'diana@example.com', '7778889999', '202 Maple St', 'MEMBER');
+
+-- Inserting data into the luggage table 10/10
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 1, 1, 30, 'Checked baggage');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 2, 2, 35, 'Checked baggage');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (3, 3, 3, 28, 'Carry-on baggage');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (4, 4, 4, 40, 'Checked baggage');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (5, 5, 5, 25, 'Carry-on baggage');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 101, 1000, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 102, 1000, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
+INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (3, 103, 1000, 35.7, 'Red suitcase with a combination lock');
+-- Inserting data ends ++++++++++++++++++++++++++++++++++++++++++++++++
+
+-- Creating index to search passengers by last name
+CREATE UNIQUE INDEX idx_passenger_email
+ON PASSENGER (email);
+
+-- Passenger ID sequence
+CREATE SEQUENCE passenger_seq
+START WITH 100
+INCREMENT BY 1;
+
+-- FLight ID sequence
+CREATE SEQUENCE flight_seq
+START with 1000
+INCREMENT BY 1;
+
+-- Airplane ID sequence
+CREATE SEQUENCE airplane_seq
+START WITH 9000
+INCREMENT BY 10;
+
+-- Pilot id sequence (used for procedure)
+CREATE SEQUENCE pilot_seq
+START WITH 1
+INCREMENT BY 1;
+
+--inserting values in passenger table after sequence creation
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY', 'MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL', 'MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Bob', 'Johnson', 'bob.johnson@example.com', '234-567-8901', '456 Elm St, San Francisco, CA', 'MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Charlie', 'Brown', 'charlie.brown@example.com', '345-678-9012', '789 Pine St, Los Angeles, CA', 'NON_MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Davis', 'david.davis@example.com', '456-789-0123', '101 Maple Ave, Chicago, IL', 'NON_MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Eva', 'Miller', 'eva.miller@example.com', '567-890-1234', '202 Oak Rd, Miami, FL', 'MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.wilson@example.com', '678-901-2345', '303 Birch Blvd, Houston, TX', 'NON_MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ', 'MEMBER');
+INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX', 'NON_MEMBER');
+
+-- Procedure for calculating and inserting flight data
+CREATE OR REPLACE PROCEDURE insert_flight_data(
+    p_origin IN CHAR,
+    p_destination IN CHAR,
+    p_departure_date IN TIMESTAMP,
+    p_flight_type IN CHAR
+) IS
+    lv_flight_time NUMBER;
+    lv_arrival_date TIMESTAMP;
+    lv_airplane_id NUMBER;
+    
+    -- define cursor for pulling airplane and pilot IDs from respective tables
+    CURSOR airplane_cursor IS
+        SELECT airplane_id
+        FROM airplane;
+BEGIN
+        -- Calculate the flight time and arrival date
+        lv_flight_time := get_flight_time(p_origin, p_destination);
+        lv_arrival_date := p_departure_date + (lv_flight_time / 24);
+        lv_airplane_id := airplane_seq.NEXTVAL;
+        
+        -- Insert into the flight table
+        INSERT INTO flight (
+            flight_id,
+            airplane_id,
+            pilot_id,
+            origin,
+            destination,
+            departure_date,
+            arrival_date,
+            flight_type
+        ) VALUES (
+            flight_seq.NEXTVAL,
+            lv_airplane_id,
+            pilot_seq.NEXTVAL,
+            p_origin,
+            p_destination,
+            p_departure_date,
+            lv_arrival_date,
+            p_flight_type
+        );
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END insert_flight_data;
+/
+
+select * from flight;
+-- inserting flight data using procedure
+BEGIN
+    insert_flight_data('FRA', 'JFK', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('LHR', 'ORD', TO_TIMESTAMP('2024-11-19 10:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('SYD', 'DXB', TO_TIMESTAMP('2024-11-19 12:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('BKK', 'CDG', TO_TIMESTAMP('2024-11-19 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('LAX', 'HKG', TO_TIMESTAMP('2024-11-19 16:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('ORD', 'LAX', TO_TIMESTAMP('2024-11-19 18:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'Domestic');
+    insert_flight_data('JFK', 'LHR', TO_TIMESTAMP('2024-11-19 20:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('DXB', 'SYD', TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+    insert_flight_data('FRA', 'BKK', TO_TIMESTAMP('2024-11-20 11:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
+END;
+/
 
 -- PL/SQL function/procedure declaration
-/
 CREATE OR REPLACE FUNCTION get_flight_time(
     p_from_location IN CHAR,
     p_to_location IN CHAR
@@ -216,188 +439,6 @@ EXCEPTION
 END get_flight_time;
 /
 
--- Passenger ID sequence
-CREATE SEQUENCE passenger_seq
-START WITH 100
-INCREMENT BY 1;
-
--- FLight ID sequence
-CREATE SEQUENCE flight_seq
-START with 1000
-INCREMENT BY 1;
-
--- Airplane ID sequence
-CREATE SEQUENCE airplane_seq
-START WITH 9000
-INCREMENT BY 10;
-
--- Pilot id sequence (used for procedure)
-CREATE SEQUENCE pilot_seq
-START WITH 1
-INCREMENT BY 1;
-
--- Procedure for calculating and inserting flight data
-/
-CREATE OR REPLACE PROCEDURE insert_flight_data(
-    p_origin IN CHAR,
-    p_destination IN CHAR,
-    p_departure_date IN TIMESTAMP
-) IS
-    lv_flight_time NUMBER;
-    lv_arrival_date TIMESTAMP;
-    lv_airplane_id NUMBER;
-    
-    -- define cursor for pulling airplane and pilot IDs from respective tables
-    CURSOR airplane_cursor IS
-        SELECT airplane_id
-        FROM airplane;
-BEGIN
-        -- Calculate the flight time and arrival date
-        lv_flight_time := get_flight_time(p_origin, p_destination);
-        lv_arrival_date := p_departure_date + (lv_flight_time / 24);
-        lv_airplane_id := airplane_seq.NEXTVAL;
-        
-        -- Insert into the flight table
-        INSERT INTO flight (
-            flight_id,
-            airplane_id,
-            pilot_id,
-            origin,
-            destination,
-            departure_date,
-            arrival_date
-        ) VALUES (
-            flight_seq.NEXTVAL,
-            lv_airplane_id,
-            pilot_seq.NEXTVAL,
-            p_origin,
-            p_destination,
-            p_departure_date,
-            lv_arrival_date
-        );
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
-END insert_flight_data;
-/
-
--- Creating index to search passengers by last name
-CREATE UNIQUE INDEX idx_passenger_email
-ON PASSENGER (email);
-
--- Inserting data
-INSERT INTO LOCATION 
-VALUES ('LAX', 'Los Angeles International Airport', -8, 33.9416, -118.4085);
-INSERT INTO LOCATION 
-VALUES ('JFK', 'John F. Kennedy International Airport', -5, 40.6413, -73.7781);
-INSERT INTO LOCATION 
-VALUES ('LHR', 'London Heathrow Airport', 0, 51.5074, -0.1278);
-INSERT INTO LOCATION 
-VALUES ('ORD', 'O''Hare International Airport', -6, 41.9744, -87.9071);
-INSERT INTO LOCATION 
-VALUES ('CDG', 'Charles de Gaulle Airport', 1, 49.0097, 2.5479);
-INSERT INTO LOCATION 
-VALUES ('SYD', 'Sydney Kingsford Smith Airport', 10, -33.8688, 151.2093);
-INSERT INTO LOCATION 
-VALUES ('HKG', 'Hong Kong International Airport', 8, 22.3080, 113.9141);
-INSERT INTO LOCATION 
-VALUES ('BKK', 'Suvarnabhumi Airport', 7, 13.6897, 100.7501);
-INSERT INTO LOCATION 
-VALUES ('DXB', 'Dubai International Airport', 4, 25.276987, 55.396999);
-INSERT INTO LOCATION 
-VALUES ('FRA', 'Frankfurt Airport', 1, 50.1109, 8.6821);
-
-INSERT INTO emp_type VALUES (1, 'Airplane Cleaner');
-INSERT INTO emp_type VALUES (2, 'Flight Attendant');
-INSERT INTO emp_type VALUES (3, 'Mechanic');
-INSERT INTO emp_type VALUES (4, 'Baggage Handler');
-INSERT INTO emp_type VALUES (5, 'Aircraft Fueler');
-
-INSERT INTO employee VALUES (001,'John','Doe');
-INSERT INTO employee VALUES (002,'Jane','Smith');
-INSERT INTO employee VALUES (003,'Robert','Brown');
-INSERT INTO employee VALUES (004,'Emily','Johnson');
-INSERT INTO employee VALUES (005,'Paul','Delores');
-INSERT INTO employee VALUES (006,'Channing','Bosum');
-INSERT INTO employee VALUES (007,'Shaun','Jacobson');
-INSERT INTO employee VALUES (008,'Lauren','Moser');
-INSERT INTO employee VALUES (009,'Tina','Shaw');
-INSERT INTO employee VALUES (010,'Pradeep','Singh');
-INSERT INTO employee VALUES (011,'Farukh','Khan');
-INSERT INTO employee VALUES (012,'Lin','Miyazaki');
-INSERT INTO employee VALUES (013, 'Alice', 'Johnson');
-INSERT INTO employee VALUES (014, 'Bob', 'Smith');
-INSERT INTO employee VALUES (015, 'Charlie', 'Brown');
-INSERT INTO employee VALUES (016, 'David', 'Wilson');
-INSERT INTO employee VALUES (017, 'Eve', 'Davis');
-INSERT INTO employee VALUES (018, 'Frank', 'Moore');
-INSERT INTO employee VALUES (019, 'Grace', 'Taylor');
-INSERT INTO employee VALUES (020, 'Hannah', 'Anderson');
-
-INSERT INTO pilot VALUES (1, 001, 1001);
-INSERT INTO pilot VALUES (2, 002, 1002);
-INSERT INTO pilot VALUES (3, 003, 1003);
-INSERT INTO pilot VALUES (4, 004, 1004);
-INSERT INTO pilot VALUES (5, 005, 1005);
-INSERT INTO pilot VALUES (6, 006, 1006);
-INSERT INTO pilot VALUES (7, 007, 1007);
-INSERT INTO pilot VALUES (8, 008, 1008);
-INSERT INTO pilot VALUES (9, 009, 1009);
-INSERT INTO pilot VALUES (10, 010, 1010);
-
-INSERT INTO airplane VALUES (9000,'AB9735','Air Bus 25','Air Hawk');
-INSERT INTO airplane VALUES (9010,'BN3749','Boeing32','Aerial Crusaders');
-INSERT INTO airplane VALUES (9020,'CF9949','Boeing747','West Jet');
-INSERT INTO airplane VALUES (9030,'GH0124','Boeing747','Sun Wing');
-INSERT INTO airplane VALUES (9040, 'GH0125', 'Airbus A320', 'Delta Airlines');
-INSERT INTO airplane VALUES (9050, 'GH0126', 'Boeing 777', 'American Airlines');
-INSERT INTO airplane VALUES (9060, 'GH0127', 'Boeing 787', 'United Airlines');
-INSERT INTO airplane VALUES (9070, 'GH0128', 'Airbus A350', 'Lufthansa');
-INSERT INTO airplane VALUES (9080, 'GH0129', 'Boeing 737', 'Southwest Airlines');
-INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx');
-
--- inserting flight data using procedure
-/
-BEGIN
-    insert_flight_data('FRA', 'JFK', TO_TIMESTAMP('2024-11-19 08:00:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('LHR', 'ORD', TO_TIMESTAMP('2024-11-19 10:30:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('SYD', 'DXB', TO_TIMESTAMP('2024-11-19 12:45:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('BKK', 'CDG', TO_TIMESTAMP('2024-11-19 14:00:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('LAX', 'HKG', TO_TIMESTAMP('2024-11-19 16:30:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('ORD', 'LAX', TO_TIMESTAMP('2024-11-19 18:00:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('JFK', 'LHR', TO_TIMESTAMP('2024-11-19 20:15:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('DXB', 'SYD', TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'));
-    insert_flight_data('FRA', 'BKK', TO_TIMESTAMP('2024-11-20 11:30:00', 'YYYY-MM-DD HH24:MI:SS'));
-END;
-/
-
-select * from flight;
-
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Alice', 'Williams', 'alice.williams@example.com', '123-456-7890', '123 Main St, New York, NY');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Taylor', 'david.taylor@example.com', '987-654-3210', '456 Elm St, Chicago, IL');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Bob', 'Johnson', 'bob.johnson@example.com', '234-567-8901', '456 Elm St, San Francisco, CA');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Charlie', 'Brown', 'charlie.brown@example.com', '345-678-9012', '789 Pine St, Los Angeles, CA');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'David', 'Davis', 'david.davis@example.com', '456-789-0123', '101 Maple Ave, Chicago, IL');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Eva', 'Miller', 'eva.miller@example.com', '567-890-1234', '202 Oak Rd, Miami, FL');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Frank', 'Wilson', 'frank.wilson@example.com', '678-901-2345', '303 Birch Blvd, Houston, TX');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Grace', 'Taylor', 'grace.taylor@example.com', '789-012-3456', '404 Cedar Dr, Phoenix, AZ');
-INSERT INTO passenger VALUES (passenger_seq.NEXTVAL, 'Hannah', 'Anderson', 'hannah.anderson@example.com', '890-123-4567', '505 Fir Ln, Dallas, TX');
-
-INSERT INTO flight_staff VALUES (1, 001, 1000, 2);
-INSERT INTO flight_staff VALUES (2, 004, 1000, 2);
-
-INSERT INTO ticket VALUES (101, 1000, 'Economy', 900);
-INSERT INTO ticket VALUES (102, 1000, 'Economy', 901);
-INSERT INTO ticket VALUES (103, 1000, 'Business', 902);
-
-select * from passenger;
-select * from ticket;
-select * from flight;
-
-INSERT INTO luggage VALUES (1, 101, 1000, 23.5, 'Blue suitcase with four wheels decorated by a red ribbon');
-INSERT INTO luggage VALUES (2, 102, 1000, 18.0, 'Black backpack with a small dog stuff toy hanging at the side');
-INSERT INTO luggage VALUES (3, 103, 1000, 35.7, 'Red suitcase with a combination lock');
-
 -- Test function
 SELECT get_flight_time('LAX', 'JFK') AS "Flight Time (h)" FROM dual;
 
@@ -417,7 +458,6 @@ SELECT *
 FROM employee
 WHERE last_name = 'Smith';
 
-select * from flight;
 
 -- an index on the flight_id column in the flight_staff table
 CREATE INDEX idx_flight_staff_flight_id
@@ -453,7 +493,6 @@ WHERE employee# = 21;
 -- This trigger is fired after we insert a new row into the location table.
 -- Like, if we add a new airport or something, it will trigger and print a message.
 
-/
 CREATE OR REPLACE TRIGGER trg_new_location
 -- AFTER INSERT means it will do its work after the data is added.
 AFTER INSERT ON location
@@ -473,80 +512,7 @@ VALUES ('SIN', 'Singapore Changi Airport', 8, 1.3644, 103.9915);
 -- It will print: New Location Added: Code = SIN, Description = Singapore Changi Airport
 -- So, every time we insert a new location, this will happen.
 
---Select tests
-SELECT * FROM pilot;
-SELECT * FROM flight;
-SELECT * FROM airplane;
-SELECT * FROM employee;
-SELECT * FROM flight_staff;
-SELECT * FROM ticket;
-SELECT * FROM passenger;
-SELECT * FROM emp_type;
-SELECT * FROM location;
-SELECT * FROM luggage;
-
---add ticket_id to ticket table
-ALTER TABLE ticket
-ADD ticket_id NUMBER(10);
-
--- Insert data into flight_staff table
-INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (1, 1, 1, 2);
-INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (2, 2, 2, 3);
-INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (3, 3, 3, 4);
-INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (4, 4, 4, 5);
-INSERT INTO flight_staff (staff_id, employee#, flight_id, designation) VALUES (5, 5, 5, 2);
-
--- Insert data into ticket table
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) VALUES (1, 1, 1, 'ECONOMY');
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) VALUES (2, 2, 2, 'BUSINESS');
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) VALUES (3, 3, 3, 'ECONOMY');
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) VALUES (4, 4, 4, 'BUSINESS');
-INSERT INTO ticket (ticket_id, passenger_id, flight_id, seating_class) VALUES (5, 5, 5, 'ECONOMY');
-
--- Insert data into passenger table
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (2, 'Jerry', 'Seinfeld', 'jerry@example.com', '0987654321', '456 Elm St', 'NON_MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (3, 'Bruce', 'Wayne', 'bruce@example.com', '1112223333', '789 Oak St', 'MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (4, 'Clark', 'Kent', 'clark@example.com', '4445556666', '101 Pine St', 'NON_MEMBER');
-INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (5, 'Diana', 'Prince', 'diana@example.com', '7778889999', '202 Maple St', 'MEMBER');
-
--- Insert data into emp_type table
--- INSERT INTO emp_type (emp_type_id, emp_type_desc) VALUES (1, 'Pilot');
--- INSERT INTO emp_type (emp_type_id, emp_type_desc) VALUES (2, 'Co-Pilot');
--- INSERT INTO emp_type (emp_type_id, emp_type_desc) VALUES (3, 'Flight Attendant');
--- INSERT INTO emp_type (emp_type_id, emp_type_desc) VALUES (4, 'Ground Staff');
--- INSERT INTO emp_type (emp_type_id, emp_type_desc) VALUES (5, 'Maintenance');
-
--- Insert data into flight table
--- Insert data into flight table
-INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (1, 9010, 1, 'SIN', 'JFK', TO_DATE('2023-11-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-01 20:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
-
-INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (2, 9020, 2, 'JFK', 'LAX', TO_DATE('2023-11-02 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-02 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'DOMESTIC');
-
-INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (3, 9030, 3, 'LAX', 'HND', TO_DATE('2023-11-03 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
-
-INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (4, 9040, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 23:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
-
-INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (5, 9050, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
-
--- Insert data into luggage table
--- Insert data into luggage table
-INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (1, 1, 1, 30, 'Checked baggage');
-INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (2, 2, 2, 35, 'Checked baggage');
-INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (3, 3, 3, 28, 'Carry-on baggage');
-INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (4, 4, 4, 40, 'Checked baggage');
-INSERT INTO luggage (luggage_id, passenger_id, flight_id, weight, description) VALUES (5, 5, 5, 25, 'Carry-on baggage');
-
 --Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
-SELECT * FROM flight;
-select * from ticket;
-
-/
 CREATE OR REPLACE PROCEDURE get_base_ticket_price (
     p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
@@ -582,18 +548,16 @@ BEGIN
 END;
 /
 
--- Test Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
-/
-DECLARE
-    lv_base_price NUMBER;
-BEGIN
-    get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
-    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
-END;
-/
+-- -- Test (UNCOMMENT FOR TESTING ONLY) Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
+-- DECLARE
+--     lv_base_price NUMBER;
+-- BEGIN
+--     get_base_ticket_price(1, 1, lv_base_price); -- Assuming flight_id = 1 and ticket_id = 1
+--     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+-- END;
+-- /
 
 --Task 2: Function to Check Additional Charge Based on the Luggage Weight
-/
 CREATE OR REPLACE FUNCTION check_additional_charge (
     p_luggage_weight IN NUMBER
 ) RETURN NUMBER AS
@@ -605,13 +569,13 @@ BEGIN
     RETURN lv_overcharge;
 END;
 
--- Test Task 2: Function to Check Additional Charge Based on the Luggage Weight
-DECLARE
-    lv_overcharge NUMBER;
-BEGIN
-    lv_overcharge := check_additional_charge(35);
-    DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
-END;
+-- -- Test (UNCOMMENT FOR TESTING ONLY) Task 2: Function to Check Additional Charge Based on the Luggage Weight
+-- DECLARE
+--     lv_overcharge NUMBER;
+-- BEGIN
+--     lv_overcharge := check_additional_charge(35);
+--     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
+-- END;
 
 --Task 3: Procedure or Function to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
 CREATE OR REPLACE PROCEDURE calculate_total_price (
@@ -646,18 +610,16 @@ BEGIN
 END;
 /
 
--- Test Task 3: Procedure to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
-/
-DECLARE
-    lv_total_price NUMBER;
-BEGIN
-    calculate_total_price(1, 1, 35, 1, lv_total_price); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
-    DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
-END;
-/
+-- -- Test (UNCOMMENT FOR TESTING ONLY) Task 3: Procedure to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
+-- DECLARE
+--     lv_total_price NUMBER;
+-- BEGIN
+--     calculate_total_price(1, 1, 35, 1, lv_total_price); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
+--     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
+-- END;
+-- /
 
 --Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
-/
 CREATE OR REPLACE PROCEDURE print_price_details (
     p_flight_id IN NUMBER,
     p_ticket_id IN NUMBER,
@@ -705,15 +667,14 @@ BEGIN
 END;
 /
 
--- Test Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
-/
-BEGIN
-    print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
-END;
-/
+-- -- Test (UNCOMMENT FOR TESTING ONLY) Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
+-- BEGIN
+--     print_price_details(1, 1, 35, 1);
+-- END;
+-- /
 
 --Task 5: a package to combine all 4 tasks
-/
+--creating the package specification
 CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
         pv_flight_id IN NUMBER,
@@ -741,7 +702,7 @@ CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
     );
 END ticket_pricing_pkg;
 /
-/
+--creating the package body
 CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
         pv_flight_id IN NUMBER,
@@ -859,44 +820,40 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
 END ticket_pricing_pkg;
 /
 
---Testing the package
--- Task 1: get_base_ticket_price
-/
-DECLARE
-    lv_base_price NUMBER;
-BEGIN
-    ticket_pricing_pkg.get_base_ticket_price(1, UPPER('economy'), lv_base_price);
-    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
-END;
-/
+-- --Testing the package (UNCOMMENT FOR TESTING ONLY)
+-- -- Task 1: get_base_ticket_price (UNCOMMENT FOR TESTING ONLY)
+-- DECLARE
+--     lv_base_price NUMBER;
+-- BEGIN
+--     ticket_pricing_pkg.get_base_ticket_price(1, UPPER('economy'), lv_base_price);
+--     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+-- END;
+-- /
 
 
--- Task 2: check_additional_charge
-/
-DECLARE
-    lv_overcharge NUMBER;
-BEGIN
-    lv_overcharge := ticket_pricing_pkg.check_additional_charge(35);
-    DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
-END;
-/
+-- -- Task 2: check_additional_charge (UNCOMMENT FOR TESTING ONLY)
+-- DECLARE
+--     lv_overcharge NUMBER;
+-- BEGIN
+--     lv_overcharge := ticket_pricing_pkg.check_additional_charge(35);
+--     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
+-- END;
+-- /
 
--- Task 3: calculate_total_price
-/
-DECLARE
-    lv_total_price NUMBER;
-BEGIN
-    ticket_pricing_pkg.calculate_total_price(1, UPPER('economy'), 35, 1, lv_total_price);
-    DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
-END;
-/
+-- -- Task 3: calculate_total_price (UNCOMMENT FOR TESTING ONLY)
+-- DECLARE
+--     lv_total_price NUMBER;
+-- BEGIN
+--     ticket_pricing_pkg.calculate_total_price(1, UPPER('economy'), 35, 1, lv_total_price);
+--     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
+-- END;
+-- /
 
--- Task 4: print_price_details
-/
-BEGIN
-    ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
-END;
-/
+-- -- Task 4: print_price_details (UNCOMMENT FOR TESTING ONLY)
+-- BEGIN
+--     ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
+-- END;
+-- /
 
 -- Flight staff package
 
