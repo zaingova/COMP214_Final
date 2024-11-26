@@ -560,14 +560,14 @@ BEGIN
 END;
 /
 
----- Test (UNCOMMENT FOR TESTING ONLY) Task 1: Procedure to Get the Flight Type and Seating Class to Calculate the Base Ticket Price
---DECLARE
---    lv_base_price NUMBER;
---BEGIN
---    get_base_ticket_price(1, lv_base_price); -- Assuming ticket_id = 1
---    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
---END;
---/
+-- Test Task 1: 
+DECLARE
+    lv_base_price NUMBER;
+BEGIN
+    get_base_ticket_price(1, lv_base_price); -- Assuming ticket_id = 1
+    DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
+END;
+/
 
 --Task 2: Function to Check Additional Charge Based on the Luggage Weight
 CREATE OR REPLACE FUNCTION check_additional_charge (
@@ -581,14 +581,14 @@ BEGIN
     RETURN lv_overcharge;
 END;
 /
--- -- Test (UNCOMMENT FOR TESTING ONLY) Task 2: Function to Check Additional Charge Based on the Luggage Weight
--- DECLARE
---     lv_overcharge NUMBER;
--- BEGIN
---     lv_overcharge := check_additional_charge(35);
---     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
--- END;
---/
+-- Test Task 2:
+ DECLARE
+     lv_overcharge NUMBER;
+ BEGIN
+     lv_overcharge := check_additional_charge(35);
+     DBMS_OUTPUT.PUT_LINE('Additional Charge: ' || lv_overcharge);
+ END;
+/
 
 --Task 3: Procedure or Function to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
 CREATE OR REPLACE PROCEDURE calculate_total_price (
@@ -608,7 +608,7 @@ BEGIN
     JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
     JOIN passenger p ON t.passenger_id = p.passenger_id
     WHERE t.ticket_id = p_ticket_id
-    AND ROWNUM = 1; -- Ensure only one row is fetched
+    AND ROWNUM = 1;
 
     -- Get base ticket price
     get_base_ticket_price(p_ticket_id, lv_base_price);
@@ -626,9 +626,9 @@ BEGIN
 END;
 /
 
--- -- Test (UNCOMMENT FOR TESTING ONLY) Task 3: Procedure to Calculate the Ticket Base Price with Additional Charges and Applies the Discount Based on Membership
+-- Test Task 3: 
 DECLARE
-    v_ticket_id NUMBER := 1; -- Replace with a valid ticket ID
+    v_ticket_id NUMBER := 1;
     v_total_price NUMBER;
 BEGIN
     -- Call the procedure
@@ -663,7 +663,7 @@ BEGIN
     JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
     JOIN passenger p ON t.passenger_id = p.passenger_id
     WHERE t.ticket_id = p_ticket_id
-    AND ROWNUM = 1; -- Ensure only one row is fetched
+    AND ROWNUM = 1; 
 
     -- Get base ticket price
     get_base_ticket_price(p_ticket_id, lv_base_price);
@@ -694,40 +694,16 @@ BEGIN
 END;
 /
 
--- -- Test (UNCOMMENT FOR TESTING ONLY) Task 4: Procedure to Print All the Dropdown Lists of Prices and Total from Tasks 1, 2, and 3
---DECLARE
---    v_ticket_id NUMBER := 1; -- Replace with a valid ticket ID
---BEGIN
---    -- Call the procedure
---    print_price_details(p_ticket_id => v_ticket_id);
---END;
---/
+-- Test Task 4: 
+DECLARE
+    v_ticket_id NUMBER := 1; -- Replace with a valid ticket ID
+BEGIN
+    -- Call the procedure
+    print_price_details(p_ticket_id => v_ticket_id);
+END;
+/
 
 --Task 5: a package to combine all 4 tasks
---creating the package specification
-CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
-    PROCEDURE get_base_ticket_price (
-        pv_flight_id IN NUMBER,
-        pv_seating_class IN VARCHAR2,
-        pv_base_price OUT NUMBER
-    );
-
-    PROCEDURE calculate_total_price (
-        pv_flight_id IN NUMBER,
-        pv_seating_class IN VARCHAR2,
-        pv_luggage_weight IN NUMBER,
-        pv_passenger_id IN NUMBER,
-        pv_total_price OUT NUMBER
-    );
-
-    PROCEDURE print_price_details (
-        pv_flight_id IN NUMBER,
-        pv_ticket_id IN NUMBER,
-        pv_luggage_weight IN NUMBER,
-        pv_passenger_id IN NUMBER
-    );
-END ticket_pricing_pkg;
-/
 --creating the package specification
 CREATE OR REPLACE PACKAGE ticket_pricing_pkg AS
     PROCEDURE get_base_ticket_price (
@@ -809,7 +785,7 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
         JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
         JOIN passenger p ON t.passenger_id = p.passenger_id
         WHERE t.ticket_id = p_ticket_id
-        AND ROWNUM = 1; -- Ensure only one row is fetched
+        AND ROWNUM = 1; 
 
         -- Get base ticket price
         get_base_ticket_price(p_ticket_id, lv_base_price);
@@ -846,7 +822,7 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
         JOIN luggage l ON t.passenger_id = l.passenger_id AND t.flight_id = l.flight_id
         JOIN passenger p ON t.passenger_id = p.passenger_id
         WHERE t.ticket_id = p_ticket_id
-        AND ROWNUM = 1; -- Ensure only one row is fetched
+        AND ROWNUM = 1;
 
         -- Get base ticket price
         get_base_ticket_price(p_ticket_id, lv_base_price);
@@ -878,8 +854,8 @@ CREATE OR REPLACE PACKAGE BODY ticket_pricing_pkg AS
 END ticket_pricing_pkg;
 /
 
--- --Testing the package (UNCOMMENT FOR TESTING ONLY)
---get_base_ticket_price (UNCOMMENT FOR TESTING ONLY)
+--Testing the package
+--get_base_ticket_price
 DECLARE
     lv_base_price NUMBER;
 BEGIN
@@ -887,9 +863,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Base Ticket Price: ' || lv_base_price);
 END;
 /
-
-
--- calculate_total_price (UNCOMMENT FOR TESTING ONLY)
+-- calculate_total_price 
 DECLARE
     lv_total_price NUMBER;
 BEGIN
@@ -897,7 +871,6 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Total Price: ' || lv_total_price);
 END;
 /
-
 -- print_price_details (UNCOMMENT FOR TESTING ONLY)
 BEGIN
     ticket_pricing_pkg.print_price_details(1); -- Assuming ticket_id = 1
