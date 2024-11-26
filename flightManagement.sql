@@ -29,6 +29,11 @@ DROP PROCEDURE print_price_details;
 DROP PACKAGE ticket_pricing_pkg;
 DROP PACKAGE BODY ticket_pricing_pkg;
 
+-- Drop the package specification and body
+DROP PACKAGE flight_staff_pkg;
+DROP PROCEDURE flight_staff_pkg.add_employee_to_flight;
+DROP PROCEDURE flight_staff_pkg.remove_employee_from_flight;
+
 -- Table creation
 CREATE TABLE location (
     locationCode CHAR(3),
@@ -124,6 +129,7 @@ CREATE TABLE flight_staff (
     CONSTRAINT designation_ck
         CHECK (designation BETWEEN 2 AND 5)
 );
+
 
 CREATE TABLE ticket (
     passenger_id  NUMBER(10),
@@ -889,5 +895,80 @@ END;
 /
 BEGIN
     ticket_pricing_pkg.print_price_details(1, 1, 35, 1); -- Assuming flight_id = 1, ticket_id = 1, luggage_weight = 35, passenger_id = 1
+END;
+/
+
+-- Flight staff package
+
+-- Package Specification
+CREATE OR REPLACE PACKAGE flight_staff_pkg AS
+    PROCEDURE add_employee_to_flight (
+        p_employee_id IN NUMBER, 
+        p_flight_id IN NUMBER, 
+        p_designation IN NUMBER
+    );
+
+    PROCEDURE remove_employee_from_flight (
+        p_employee_id IN NUMBER, 
+        p_flight_id IN NUMBER
+    );
+END flight_staff_pkg;
+/
+-- Body Specification
+CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
+
+    PROCEDURE add_employee_to_flight (
+        p_employee_id IN NUMBER, 
+        p_flight_id IN NUMBER, 
+        p_designation IN NUMBER
+    ) IS
+        v_staff_id NUMBER;
+    BEGIN
+        -- Find the maximum staff_id from the flight_staff table and add 1 to generate the new staff_id
+        SELECT NVL(MAX(staff_id), 0) + 1
+        INTO v_staff_id
+        FROM flight_staff;
+
+        -- Insert the new employee into the flight_staff table
+        INSERT INTO flight_staff (staff_id, employee#, flight_id, designation)
+        VALUES (v_staff_id, p_employee_id, p_flight_id, p_designation);
+
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Employee added successfully to the flight staff.');
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Error: No employee found with the given ID.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+    END add_employee_to_flight;
+
+    PROCEDURE remove_employee_from_flight (
+        p_employee_id IN NUMBER, 
+        p_flight_id IN NUMBER
+    ) IS
+    BEGIN
+        -- Delete the employee from the flight_staff table
+        DELETE FROM flight_staff
+        WHERE employee# = p_employee_id
+        AND flight_id = p_flight_id;
+
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Employee removed successfully from the flight staff.');
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Error: No employee found for the given flight.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+    END remove_employee_from_flight;
+
+/
+--Testing code:
+BEGIN
+    -- Testing add_employee
+    flight_staff_pkg.add_employee_to_flight(p_employee_id => 101, p_flight_id => 202, p_designation => 2);
+END;
+BEGIN
+    -- Testing remove_employee
+    flight_staff_pkg.remove_employee_from_flight(p_employee_id => 101, p_flight_id => 202);
 END;
 /
