@@ -15,7 +15,7 @@ DROP SEQUENCE flight_seq;
 DROP SEQUENCE pilot_seq;
 DROP SEQUENCE airplane_seq;
 -- Dropping index if they exist
-DROP INDEX idx_passenger_email;
+DROP INDEX idx_passenger_email CASCADE;
 DROP INDEX idx_employee_last_name;
 DROP INDEX idx_flight_staff_flight_id;
 -- Dropping trigger if they exist
@@ -37,8 +37,6 @@ DROP PACKAGE ticket_pricing_pkg;
 DROP PACKAGE BODY flight_staff_pkg;
 DROP PACKAGE flight_staff_pkg;
 DROP SEQUENCE flight_staff_seq;
-
-
 
 -- set server output = on
 SET SERVEROUTPUT ON;
@@ -245,19 +243,19 @@ INSERT INTO airplane VALUES (9090, 'GH0130', 'McDonnell Douglas MD-11', 'FedEx')
 
 -- Inserting data into the flight table 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (1, 9010, 1, 'SIN', 'JFK', TO_DATE('2023-11-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-01 20:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+VALUES (1, 9000, 1, 'SIN', 'JFK', TO_DATE('2023-11-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-01 20:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (2, 9020, 2, 'JFK', 'LAX', TO_DATE('2023-11-02 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-02 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'DOMESTIC');
+VALUES (2, 9010, 2, 'JFK', 'LAX', TO_DATE('2023-11-02 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-02 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'DOMESTIC');
 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (3, 9030, 3, 'LAX', 'HND', TO_DATE('2023-11-03 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+VALUES (3, 9020, 3, 'LAX', 'HND', TO_DATE('2023-11-03 10:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (4, 9040, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 23:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+VALUES (4, 9030, 4, 'HND', 'DXB', TO_DATE('2023-11-04 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-04 23:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
 INSERT INTO flight (flight_id, airplane_id, pilot_id, origin, destination, departure_date, arrival_date, flight_type) 
-VALUES (5, 9050, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
+VALUES (5, 9040, 5, 'DXB', 'SIN', TO_DATE('2023-11-05 16:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2023-11-06 02:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'INTERNATIONAL');
 
 -- Inserting data into the passenger table 
 INSERT INTO passenger (passenger_id, first_name, last_name, email, phone, address, airbus_membership) VALUES (1, 'Tom', 'Hanks', 'tom@example.com', '1234567890', '123 Main St', 'MEMBER');
@@ -307,17 +305,17 @@ INCREMENT BY 1;
 
 -- FLight ID sequence
 CREATE SEQUENCE flight_seq
-START with 1000
+START with 6
 INCREMENT BY 1;
 
 -- Airplane ID sequence
 CREATE SEQUENCE airplane_seq
-START WITH 9000
+START WITH 9050
 INCREMENT BY 10;
 
 -- Pilot id sequence (used for procedure)
 CREATE SEQUENCE pilot_seq
-START WITH 1
+START WITH 6
 INCREMENT BY 1;
 
 --inserting values in passenger table after sequence creation
@@ -411,11 +409,6 @@ CREATE OR REPLACE PROCEDURE insert_flight_data(
     lv_flight_time NUMBER;
     lv_arrival_date TIMESTAMP;
     lv_airplane_id NUMBER;
-    
-    -- define cursor for pulling airplane and pilot IDs from respective tables
-    CURSOR airplane_cursor IS
-        SELECT airplane_id
-        FROM airplane;
 BEGIN
         -- Calculate the flight time and arrival date
         lv_flight_time := get_flight_time(p_origin, p_destination);
@@ -455,14 +448,8 @@ BEGIN
     insert_flight_data('SYD', 'DXB', TO_TIMESTAMP('2024-11-19 12:45:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
     insert_flight_data('BKK', 'CDG', TO_TIMESTAMP('2024-11-19 14:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
     insert_flight_data('LAX', 'HKG', TO_TIMESTAMP('2024-11-19 16:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
-    insert_flight_data('ORD', 'LAX', TO_TIMESTAMP('2024-11-19 18:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'Domestic');
-    insert_flight_data('JFK', 'LHR', TO_TIMESTAMP('2024-11-19 20:15:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
-    insert_flight_data('DXB', 'SYD', TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
-    insert_flight_data('FRA', 'BKK', TO_TIMESTAMP('2024-11-20 11:30:00', 'YYYY-MM-DD HH24:MI:SS'), 'International');
 END;
 /
-
-select * from flight;
 
 --  an index on the last_name column in the employee table that makes it easy to search for employee
 CREATE INDEX idx_employee_last_name
