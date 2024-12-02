@@ -899,7 +899,7 @@ CREATE OR REPLACE PACKAGE flight_staff_pkg AS
     ) RETURN flight_staff_rec;
 END flight_staff_pkg;
 /
-
+select * from flight_staff;
 --Package Body
 CREATE OR REPLACE PACKAGE BODY flight_staff_pkg AS
 
@@ -981,9 +981,12 @@ END flight_staff_pkg;
 --Testing code
 BEGIN
     -- Test adding an employee
-    flight_staff_pkg.add_employee_to_flight(p_employee_id => 101, p_flight_id => 202, p_designation => 2);
+    flight_staff_pkg.add_employee_to_flight(p_employee_id => 2, p_flight_id => 10, p_designation => 2);
 END;
 /
+
+select * from flight;
+select * from employee;
 
 BEGIN
     -- Test removing an employee
