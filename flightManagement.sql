@@ -15,7 +15,7 @@ DROP SEQUENCE flight_seq;
 DROP SEQUENCE pilot_seq;
 DROP SEQUENCE airplane_seq;
 -- Dropping index if they exist
-DROP INDEX idx_passenger_email CASCADE;
+DROP INDEX idx_passenger_email;
 DROP INDEX idx_employee_last_name;
 DROP INDEX idx_flight_staff_flight_id;
 -- Dropping trigger if they exist
@@ -372,14 +372,14 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('From location (' || p_from_location || '): Lat=' || v_latitude_from || ', Lon=' || v_longitude_from);
     DBMS_OUTPUT.PUT_LINE('To location (' || p_to_location || '): Lat=' || v_latitude_to || ', Lon=' || v_longitude_to);
 
+    -- haversine formula for calculating geospatial distance
     v_flight_time := ROUND(6371 * 2 * ASIN(
                         SQRT(
                             SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) * SIN((v_latitude_to - v_latitude_from) * 3.1415 / 180 / 2) +
                             COS(v_latitude_from * 3.1415 / 180) * COS(v_latitude_to * 3.1415 / 180) *
                             SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2) * SIN((v_longitude_to - v_longitude_from) * 3.1415 / 180 / 2)
-                        ) / 800
+                        ) / 800 -- 800 represents average airplane speed
                     ), 2);
-
     RETURN v_flight_time;
 
 EXCEPTION
@@ -412,7 +412,7 @@ CREATE OR REPLACE PROCEDURE insert_flight_data(
 BEGIN
         -- Calculate the flight time and arrival date
         lv_flight_time := get_flight_time(p_origin, p_destination);
-        lv_arrival_date := p_departure_date + (lv_flight_time / 24);
+        lv_arrival_date := p_departure_date + (lv_flight_time / 24); -- timestamp datatype is 24h
         lv_airplane_id := airplane_seq.NEXTVAL;
         
         -- Insert into the flight table
