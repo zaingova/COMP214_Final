@@ -22,6 +22,8 @@ DROP INDEX idx_flight_staff_flight_id;
 DROP TRIGGER trg_employee_full_name;
 DROP TRIGGER trg_new_location;
 
+-- this is a new comment
+
 DROP FUNCTION get_flight_time;
 DROP PROCEDURE insert_flight_data;
 
